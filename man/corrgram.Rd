@@ -1,0 +1,145 @@
+\name{corrgram}
+\alias{corrgram}
+\alias{panel.pts}
+\alias{panel.pie}
+\alias{panel.ellipse}
+\alias{panel.minmax}
+\alias{panel.shade}
+\alias{panel.txt}
+\alias{panel.minmax}
+\alias{col.corrgram}
+
+\title{Draw a correlogram}
+
+\description{
+  The corrgram function produces a graphical display of a correlation
+  matrix, called a correlogram.  The cells of the matrix can be shaded
+  or colored to show the correlation value.
+}
+
+\usage{
+corrgram(x, order = NULL, labels, panel=panel.shade, ...,
+  lower.panel=panel, upper.panel=panel, diag.panel=NULL,
+text.panel=textPanel, label.pos=0.5, cex.labels=NULL, font.labels=1, 
+row1attop=TRUE, gap=0)
+}
+
+\arguments{
+  \item{x}{A \emph{tall} data frame with one observation per row.  Only
+  numeric values are allowed.}
+  \item{order}{Currently, anything other than NULL will cause the
+    variables to be ordered using principal component analysis of the
+    correlation matrix.}
+  \item{labels}{Not used}
+  \item{panel}{function used to plot the contents of each panel}
+  \item{...}{additional arguments passed to methods}
+  \item{lower.panel, upper.panel}{Separate panel functions used
+    below/above the diagonal}
+  \item{diag.panel, text.panel}{panel function used on the diagonal}
+  \item{label.pos}{vertical placement of label in diagonal panels}
+  \item{cex.labels, font.labels}{Graphics parameter for diagonal panels}
+  \item{row1attop}{TRUE for diagonal like " \ ", FALSE for diagonal like
+  " / ".}
+  \item{gap}{Distance between panels}
+}
+
+\details{
+  This function is basically a modification of the \code{pairs.default}
+  function with the use of customized panel functions.
+
+  The off-diagonal panels are specified with \code{panel.pts},
+  \code{panel.pie}, \code{panel.shade}, \code{panel.ellipse}.
+
+  Diagonal panels are specified with
+  \code{panel.txt}, \code{panel.minmax}.
+
+  The panel functions use \code{col.corrgram} to specify the colors.
+  Change this function if you desire to use a different palette.
+  
+  The function currently can re-produce some/most of the examples in the
+  paper by Friendly, but has not been tested on other datasets.
+
+  TODO: legend, partial correlations
+}
+
+\value{
+  No value is returned.  A plot is created.
+}
+
+\references{
+  Friendly, Michael.  2002.  Corrgrams: Exploratory Displays for Correlation
+  Matrices.  \emph{The American Statistician}, 56, 316--324.
+  Online: \url{http://www.math.yorku.ca/SCS/Papers/corrgram.pdf}
+  
+  A SAS macro by Michael Friendly is at
+  \url{http://www.math.yorku.ca/SCS/sasmac/corrgram.html}.
+}
+
+\author{Kevin Wright}
+
+\seealso{The \code{plotcorr} function in the \code{ellipse} package has
+  some similarities.
+
+  The \code{corrgram} function is derived from the \code{\link[graphics]{pairs}} function. 
+}
+
+\examples{
+
+# Load datasets first
+data(baseball)
+data(auto)
+
+# Most of the following examples are found in the paper by Michael
+# Friendly.
+
+# Figure 2
+vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
+           "Putouts","RBI","Runs","Walks","Years")
+corrgram(baseball[,vars2], order=TRUE, 
+         main="Baseball data PC2/PC1 order",
+         lower.panel=panel.shade, upper.panel=panel.pie,
+         text.panel=panel.txt)
+
+# Figure 3
+baseball.cor <- cor(baseball[,vars2], use='pair')
+baseball.eig <- eigen(baseball.cor)$vectors[,1:2]
+e1 <- baseball.eig[,1]
+e2 <- baseball.eig[,2]
+plot(e1,e2,col='white', xlim=range(e1,e2), ylim=range(e1,e2))
+arrows(0, 0, e1, e2, cex=0.5, col="red", length=0.1)
+text(e1,e2, rownames(baseball.cor), cex=0.75)
+
+# Figure 4a
+corrgram(baseball[,vars2], main="Baseball data (alphabetic order)")
+
+# Figure 4b.  panel functions explicitly called
+corrgram(baseball[,vars2], order=TRUE,
+         main="Baseball data (PC order)",
+         panel=panel.shade, text.panel=panel.txt)
+
+# Figure 5
+vars5 <- setdiff(colnames(baseball), c("Name","League","Team","Position"))
+corrgram(baseball[, vars5], order=TRUE,
+         main="Baseball data (PC order)")
+
+# Figure 6. Arrangement is slightly different from Friendly.
+vars6 <- setdiff(colnames(auto), c("Model", "Origin"))
+corrgram(auto[, vars6], order=TRUE, main="Auto data (PC order)")
+
+# Figure 7, 8, 9
+# To re-create figure 7, 8 and 9, we need to re-write corrgram to
+# work with a correlation matrix instead of a data matrix
+# Not yet implemented
+
+# Figure 11.  
+corrgram(baseball[,vars2], order=TRUE,
+         main="Baseball correlation ellipses",
+         panel=panel.ellipse, text.panel=panel.txt, diag.panel=panel.minmax)
+
+# Reverse diagonal, use points in lower part
+corrgram(baseball[,vars2], order=TRUE, row1attop=FALSE,
+         main="Baseball correlation ellipses",
+         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
+}
+
+\keyword{hplot}
