@@ -1,0 +1,24 @@
+
+Changes in version 1.0
+
+  * New panel function 'panel.conf'
+  * New data set 'vote'
+  * New function arguments 'dir' (alternative to 'row1attop'), 'type', 
+  'label.srt', 'title', 'abs'.
+  * Now works for either a data.frame or a correlation matrix using the
+	'type' argument.  Panel functions need a 'corr' argument.
+  * New ordering method 'OLO' using 'seriation' package.
+  * Ordering can now be done on absolute value of correlations.
+  * Expanded test suite.
+
+Bugs fixed
+
+  * Strongly negative correlations used no color.
+
+Changes in version 0.1
+
+  * First release to CRAN 2006-11-28.
+
+Changes in version 0.0
+
+  * Package development begins 2006-04-16.

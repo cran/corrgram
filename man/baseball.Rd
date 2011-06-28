@@ -66,16 +66,15 @@ The data are for 322 Major Leaque Baseball regular and substitute hitters in 198
   The salary of any player not included  in  that  article  is 
   listed  as an NA.  The 1986 and career statistics were taken
   from The 1987 Baseball Encyclopedia Update published by Collier
-  Books, 
-  Macmillan  Publishing  Company, New York.  
-
-  More information about the game of baseball can be found Wikipedia,
-  \url{http://en.wikipedia.org/wiki/Baseball}.
+  Books, Macmillan  Publishing  Company, New York.  
 }
 
 \examples{
 data(baseball)
-## maybe str(baseball) ; plot(baseball) ...
-}
 
-\keyword{datasets}
+vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
+           "Putouts","RBI","Runs","Walks","Years")
+corrgram(baseball[,vars2],
+         lower.panel=panel.shade, upper.panel=panel.pie)
+
+}

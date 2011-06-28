@@ -49,7 +49,7 @@
 
 \examples{
 data(auto)
-## maybe str(auto) ; plot(auto) ...
+corrgram(auto[, -c(1:2)])
 }
 
-\keyword{datasets}
+
