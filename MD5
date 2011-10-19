@@ -1,0 +1,13 @@
+16a68457ef66853c169413eb3704db16 *DESCRIPTION
+2a81f9f75b0cb7c93929046e094663ea *NAMESPACE
+a3837c3600785a3f84e51b54b03aecd8 *NEWS
+0f7d6dc5a9dfba44d51562dcf6080d5c *R/corrgram.r
+758b22e873890a102f99cb5804fd2d14 *data/auto.rda
+6bc8d427d5cf6676dc39ba3109031c7a *data/baseball.rda
+34beac00cef555788729b7fbeef0c99b *data/vote.rda
+b2bfff1c571b814ea21058a55996dd41 *man/auto.Rd
+5d54b1c2743ba781ee3476cd2637edd3 *man/baseball.Rd
+7af24e73176bbc0f63eb6f287ae39e13 *man/corrgram.Rd
+dbda32ec6faa38b70a9226480fc0d17e *man/vote.Rd
+47eee908353fdeaf53b6bd9a6621fe79 *tests/all.r
+f4ab015621c0bb4e861e1e3b3bb25e36 *tests/shade.r

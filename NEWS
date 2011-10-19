@@ -1,9 +1,13 @@
 
+Changes in version 1.1
+
+  * Added namespace.
+
 Changes in version 1.0
 
   * New panel function 'panel.conf'
   * New data set 'vote'
-  * New function arguments 'dir' (alternative to 'row1attop'), 'type', 
+  * New function arguments 'dir' (alternative to 'row1attop'), 'type',
   'label.srt', 'title', 'abs'.
   * Now works for either a data.frame or a correlation matrix using the
 	'type' argument.  Panel functions need a 'corr' argument.

@@ -1,5 +1,5 @@
 # corrgram.r
-# Time-stamp: <01 Jul 2011 17:19:46 c:/x/rpack/corrgram/R/corrgram.r>
+# Time-stamp: <22 Aug 2011 10:26:44 c:/x/rpack/corrgram/R/corrgram.r>
 
 # Author: Kevin Wright
 
@@ -132,8 +132,6 @@ corrgram <- function (x, type=NULL,
   }
 
   # Plot layout
- # op <- par(no.readonly=TRUE)
- # on.exit(par(op))
 
   nc <- ncol(x)
   has.labs <- TRUE
