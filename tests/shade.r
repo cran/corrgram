@@ -1,5 +1,5 @@
 # shade.r
-# Time-stamp: <30 Jun 2011 12:48:04 c:/x/rpack/corrgram/R/tests/shade.r>
+# Time-stamp: <28 Mar 2012 15:26:23 c:/x/rpack/corrgram/tests/shade.r>
 
 mat <- matrix(c(
 0,-0.0063557,-0.52034,0.17974,-0.090269,0,0,3,1,1,

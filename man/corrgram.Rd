@@ -1,13 +1,13 @@
 \name{corrgram}
 \alias{corrgram}
 \alias{panel.conf}
-\alias{panel.pts}
-\alias{panel.pie}
+\alias{panel.density}
 \alias{panel.ellipse}
 \alias{panel.minmax}
+\alias{panel.pie}
+\alias{panel.pts}
 \alias{panel.shade}
 \alias{panel.txt}
-\alias{panel.minmax}
 \alias{col.corrgram}
 
 \title{Draw a correlogram}
@@ -50,6 +50,9 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
 }
 
 \details{
+
+  Non-numeric columns in the data will be ignored.
+  
   This function is basically a modification of the \code{pairs.default}
   function with the use of customized panel functions.
 
@@ -58,11 +61,11 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
   \code{panel.ellipse}, \code{panel.conf}.
 
   Diagonal panels are specified with
-  \code{panel.txt}, \code{panel.minmax}.
+  \code{panel.txt}, \code{panel.minmax}, \code{panel.density}.
 
   The panel functions use \code{col.corrgram} to specify the colors.
   Change this function if you desire to use a different palette.
-  
+
   TODO: legend, partial correlations, grid graphics version.
 }
 
@@ -87,17 +90,16 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
 
 \examples{
 
-# Load datasets first
-data(baseball)
-data(auto)
+# Demonstrate density panel, confidence panel
+corrgram(iris, lower.panel=panel.pts, upper.panel=panel.conf,
+         diag.panel=panel.density)
 
 # Most of the following are from the paper by Michael Friendly.
 
 # Figure 2
 vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
            "Putouts","RBI","Runs","Walks","Years")
-corrgram(baseball[,vars2], order=TRUE, 
-         main="Baseball data PC2/PC1 order",
+corrgram(baseball[,vars2], order=TRUE, main="Baseball data PC2/PC1 order",
          lower.panel=panel.shade, upper.panel=panel.pie,
          text.panel=panel.txt)
 
@@ -110,37 +112,24 @@ plot(e1,e2,col='white', xlim=range(e1,e2), ylim=range(e1,e2))
 arrows(0, 0, e1, e2, cex=0.5, col="red", length=0.1)
 text(e1,e2, rownames(baseball.cor), cex=0.75)
 
-# Figure 4a
-corrgram(baseball[,vars2], main="Baseball data (alphabetic order)")
-
-# Figure 4b.  panel functions explicitly called
+# Figure 4b
 corrgram(baseball[,vars2], order=TRUE,
          main="Baseball data (PC order)",
          panel=panel.shade, text.panel=panel.txt)
 
 # Figure 5
-vars5 <- setdiff(colnames(baseball), c("Name","League","Team","Position"))
-corrgram(baseball[, vars5], order=TRUE,
-         main="Baseball data (PC order)")
+corrgram(baseball, order=TRUE, main="Baseball data (PC order)")
 
-# Figure 6. Arrangement is slightly different from Friendly.
-vars6 <- setdiff(colnames(auto), c("Model", "Origin"))
-corrgram(auto[, vars6], order=TRUE, main="Auto data (PC order)")
+# Figure 6. Slightly different from Friendly.
+corrgram(auto, order=TRUE, main="Auto data (PC order)")
 
-# Figure 7, 8, 9
-# To re-create figure 7, 8 and 9, we need to re-write corrgram to
-# work with a correlation matrix instead of a data matrix
-# Not yet implemented
+# For figure 7, 8, see this package's test suite
 
 # Figure 11.  
 corrgram(baseball[,vars2], order=TRUE,
          main="Baseball correlation ellipses",
          panel=panel.ellipse, text.panel=panel.txt, diag.panel=panel.minmax)
 
-# Reverse diagonal, use points in lower part
-corrgram(baseball[,vars2], order=TRUE, dir="right",
-         main="Baseball correlation ellipses",
-         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
 }
 
 \keyword{hplot}

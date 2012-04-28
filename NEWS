@@ -1,4 +1,17 @@
 
+Changes in version 1.2
+
+  * Small bug.  Now accepts NA values in correlation matrices, and
+    NAs caused by missing combinations of data and cor( use="pair").
+    Added to test suite.
+
+  * Non-numeric columns in the data will be ignored. (Request of JZ)
+
+  * New panel function panel.density
+
+  * Test suite now includes corrgram of inverse correlation, partial
+    correlation matrices.
+
 Changes in version 1.1
 
   * Added namespace.

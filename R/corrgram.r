@@ -1,10 +1,12 @@
 # corrgram.r
-# Time-stamp: <22 Aug 2011 10:26:44 c:/x/rpack/corrgram/R/corrgram.r>
+# Time-stamp: <28 Mar 2012 15:19:58 c:/x/rpack/corrgram/R/corrgram.r>
 
 # Author: Kevin Wright
+# Copyright 2006 Kevin Wright
+# License: GPL2
 
+# The corrgram function was derived from the 'pairs' function.
 # Code for plotting ellipses was derived from the ellipse package.
-
 # Additional ideas from the plot.corr function in the 'arm' package.
 
 # Right now we have to specify both lower.panel and upper.panel instead
@@ -28,12 +30,12 @@ corrgram <- function (x, type=NULL,
   if (dir=="/") dir <-  "right"  
   if(row1attop) dir <- "left"
   
-  if (ncol(x) < 2) stop("only one column in the argument to 'corrgram'")
+  if (ncol(x) < 2) stop("Only one column in the argument to 'corrgram'")
   
   # Do we have a data.frame or correlation matrix?
   if(is.matrix(x) && isSymmetric(x) &&
-     min(x) > -1 - .Machine$double.eps &&
-     max(x) < 1 + .Machine$double.eps)
+     min(x, na.rm=TRUE) > -1 - .Machine$double.eps &&
+     max(x, na.rm=TRUE) < 1 + .Machine$double.eps)
     maybeCorr <- TRUE
   else
     maybeCorr <- FALSE
@@ -54,6 +56,9 @@ corrgram <- function (x, type=NULL,
     stop("unknown data type in 'corrgram'")
   }
 
+  # Remove non-numeric columns from data frames
+  if(type=="data" & !is.matrix(x)) x <- x[ , sapply(x, is.numeric)]
+  
   # If a data matrix, then calculate the correlation matrix
   if(type=="data")
     cmat <- cor(x, use="pairwise.complete.obs")
@@ -80,9 +85,9 @@ corrgram <- function (x, type=NULL,
   }
 
 
-  textPanel <-
-    function(x = 0.5, y = 0.5, txt, cex, font, srt)
-      text(x, y, txt, cex=cex, font=font, srt=srt)
+  textPanel <- function(x = 0.5, y = 0.5, txt, cex, font, srt) {
+    text(x, y, txt, cex=cex, font=font, srt=srt)
+  }
   
   localAxis <- function(side, x, y, xpd, bg, col=NULL, main, oma, ...) {
     ## Explicitly ignore any color argument passed in as
@@ -93,7 +98,8 @@ corrgram <- function (x, type=NULL,
   }
   
   # Don't pass some arguments on to the panel functions
-  localPlot <- function(..., main, oma, font.main, cex.main) plot(...)
+  localPlot <- function(..., main, oma, font.main, cex.main)
+    plot(...)
   localLowerPanel <- function(..., main, oma, font.main, cex.main)
     lower.panel(...)
   localUpperPanel <- function(..., main, oma, font.main, cex.main)
@@ -214,7 +220,7 @@ col.corrgram <- function(ncol){
   colorRampPalette(c("red","salmon","white","royalblue","navy"))(ncol)
 }
 
-panel.pts <- function(x, y, corr, ...){
+panel.pts <- function(x, y, corr=NULL, ...){
   
   # For correlation matrix, do nothing
   if(!is.null(corr)) return()
@@ -223,7 +229,7 @@ panel.pts <- function(x, y, corr, ...){
   box(col="lightgray")
 }
 
-panel.pie <- function(x, y, corr, ...){
+panel.pie <- function(x, y, corr=NULL, ...){
 
   # Coordinates of box
   usr <- par()$usr
@@ -263,7 +269,7 @@ panel.pie <- function(x, y, corr, ...){
   
 }
 
-panel.shade <- function(x, y, corr, ...){
+panel.shade <- function(x, y, corr=NULL, ...){
   
   if(is.null(corr))
     corr <- cor(x, y, use='pair')
@@ -276,29 +282,16 @@ panel.shade <- function(x, y, corr, ...){
   # Solid fill
   rect(usr[1], usr[3], usr[2], usr[4], col=pal[col.ind], border=NA)
   # Add diagonal lines
-  rect(usr[1], usr[3], usr[2], usr[4], density=5,
+
+  if(!is.na(corr)) {
+    rect(usr[1], usr[3], usr[2], usr[4], density=5,
          angle=ifelse(corr>0, 45, 135), col="white")
+  }
   # Boounding box needs to plot on top of the shading, so do it last.
   box(col='lightgray')
 }
 
-panel.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
-  text(x, y, txt, cex=cex, font=font, srt=srt)
-}
-
-panel.minmax <- function(x, corr, ...){
-
-  # For correlation matrix, do nothing  
-  if(!is.null(corr)) return()
-  # Put the minimum in the lower-left corner and the
-  # maximum in the upper-right corner
-  minx <- round(min(x, na.rm=TRUE),2)
-  maxx <- round(max(x, na.rm=TRUE),2)
-  text(minx, minx, minx, cex=1, adj=c(0,0))
-  text(maxx, maxx, maxx, cex=1, adj=c(1,1))
-}
-
-panel.ellipse <- function(x,y, corr, ...){
+panel.ellipse <- function(x,y, corr=NULL, ...){
 
   # For correlation matrix, do nothing
   if(!is.null(corr)) return()
@@ -338,7 +331,7 @@ panel.ellipse <- function(x,y, corr, ...){
           col = "red", ...)  
 }
 
-panel.conf <- function(x, y, corr, digits=2, cex.cor, ...){
+panel.conf <- function(x, y, corr=NULL, digits=2, cex.cor, ...){
 
   auto <- missing(cex.cor)  
   usr <- par("usr"); on.exit(par(usr))
@@ -366,3 +359,31 @@ panel.conf <- function(x, y, corr, digits=2, cex.cor, ...){
     text(0.5, 0.3, ci, cex=cex.cor)
   }
 }
+
+panel.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
+  text(x, y, txt, cex=cex, font=font, srt=srt)
+}
+
+panel.density <- function(x, corr=NULL, ...){
+  # For correlation matrix, do nothing  
+  if(!is.null(corr)) return()
+
+  dd = density(x)
+  xr=range(dd$x)
+  yr=range(dd$y)
+  par(usr = c(min(xr), max(xr), min(yr), max(yr)*1.1))
+  plot.xy(xy.coords(dd$x, dd$y), type="l", col="black", ...)
+  box(col="lightgray")
+}
+
+panel.minmax <- function(x, corr=NULL, ...){
+  # For correlation matrix, do nothing  
+  if(!is.null(corr)) return()
+  # Put the minimum in the lower-left corner and the
+  # maximum in the upper-right corner
+  minx <- round(min(x, na.rm=TRUE),2)
+  maxx <- round(max(x, na.rm=TRUE),2)
+  text(minx, minx, minx, cex=1, adj=c(0,0))
+  text(maxx, maxx, maxx, cex=1, adj=c(1,1))
+}
+

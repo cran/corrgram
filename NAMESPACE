@@ -1,5 +1,6 @@
 export(corrgram)
 export(panel.conf)
+export(panel.density)
 export(panel.ellipse)
 export(panel.minmax)
 export(panel.minmax)
