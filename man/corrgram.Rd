@@ -7,6 +7,7 @@
 \alias{panel.pie}
 \alias{panel.pts}
 \alias{panel.shade}
+\alias{panel.bar}
 \alias{panel.txt}
 \alias{col.corrgram}
 
@@ -33,7 +34,7 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
   \item{order}{Should variables be re-ordered?  Use TRUE/"PCA" for
     PCA-based re-ordering, "OLO" for optimal leaf ordering.
   }
-  \item{labels}{Not used}
+  \item{labels}{Labels to use (instead of data frame variable names) for diagonal panels}
   \item{panel}{function used to plot the contents of each panel}
   \item{...}{additional arguments passed to methods}
   \item{lower.panel, upper.panel}{Separate panel functions used
@@ -57,7 +58,7 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
   function with the use of customized panel functions.
 
   The off-diagonal panels are specified with \code{panel.pts},
-  \code{panel.pie}, \code{panel.shade},
+  \code{panel.pie}, \code{panel.shade}, \code{panel.bar},
   \code{panel.ellipse}, \code{panel.conf}.
 
   Diagonal panels are specified with
@@ -66,7 +67,7 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
   The panel functions use \code{col.corrgram} to specify the colors.
   Change this function if you desire to use a different palette.
 
-  TODO: legend, partial correlations, grid graphics version.
+  TODO: legend, grid graphics version.
 }
 
 \value{

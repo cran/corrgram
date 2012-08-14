@@ -1,5 +1,5 @@
 # corrgram.r
-# Time-stamp: <28 Mar 2012 15:19:58 c:/x/rpack/corrgram/R/corrgram.r>
+# Time-stamp: <25 May 2012 11:25:42 c:/x/rpack/corrgram/R/corrgram.r>
 
 # Author: Kevin Wright
 # Copyright 2006 Kevin Wright
@@ -233,10 +233,8 @@ panel.pie <- function(x, y, corr=NULL, ...){
 
   # Coordinates of box
   usr <- par()$usr
-  minx <- usr[1] #min(x, na.rm=TRUE)
-  maxx <- usr[2] #max(x, na.rm=TRUE)
-  miny <- usr[3] #min(y, na.rm=TRUE)
-  maxy <- usr[4] #max(y, na.rm=TRUE)
+  minx <- usr[1]; maxx <- usr[2]
+  miny <- usr[3]; maxy <- usr[4]
   # Multiply the radius by .97 so the circles do not overlap
   rx <- (maxx-minx)/2 * .97
   ry <- (maxy-miny)/2 * .97
@@ -329,6 +327,34 @@ panel.ellipse <- function(x,y, corr=NULL, ...){
   if (any(ok)) 
     lines(stats::lowess(x[ok], y[ok], f = 2/3, iter = 3), 
           col = "red", ...)  
+}
+
+panel.bar <- function(x, y, corr=NULL, ...){
+  # Use 'bars' as in Friendly, figure 1
+  
+  usr <- par()$usr
+  minx <- usr[1]; maxx <- usr[2]
+  miny <- usr[3];  maxy <- usr[4]
+
+  if (is.null(corr)) 
+    corr <- cor(x, y, use = "pair")
+  ncol <- 14
+  pal <- col.corrgram(ncol)
+  col.ind <- as.numeric(cut(corr, breaks = seq(from = -1, to = 1, 
+                                    length = ncol + 1), include.lowest = TRUE))
+  col.bar <- pal[col.ind]
+  if(corr < 0) {
+    # Draw up from bottom
+    maxy <- miny + (maxy-miny) *  abs(corr)
+    rect(minx, miny, maxx, maxy, col = pal[col.ind], 
+         border = "lightgray")
+  } else if (corr > 0){
+    # Draw down from top
+    miny <- maxy - (maxy-miny)*corr
+    rect(minx, miny, maxx, maxy, col = pal[col.ind], 
+         border = "lightgray")
+  } 
+
 }
 
 panel.conf <- function(x, y, corr=NULL, digits=2, cex.cor, ...){

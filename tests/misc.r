@@ -1,5 +1,38 @@
 # misc.r
-# Time-stamp: <28 Mar 2012 15:26:12 c:/x/rpack/corrgram/tests/misc.r>
+# Time-stamp: <14 Aug 2012 13:44:06 c:/x/rpack/corrgram/tests/misc.r>
+
+# ----------------------------------------------------------------------------
+
+# Print diagonal text unclipped.
+# This has a slight quirk...the red box is only drawn the first time.  Calling
+# corrgram a 2nd time doesn't draw the red box.
+
+require('gridBase')
+unclipped.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
+  vps <- baseViewports()
+  vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
+  pushViewport(vps$inner) # Figure region
+  grid.rect(gp=gpar(lwd=3, col="red"))
+  pushViewport(vps$figure) # The diagonal box region
+  grid.rect(gp=gpar(lwd=3, col="blue"))
+  grid.text(txt, x=x,y=y, just='center', gp=gpar(cex=cex))
+  popViewport(2)
+}
+corrgram(mtcars[2:6], order=TRUE,
+         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
+         cex.labels=2,
+         upper.panel=panel.conf, lower.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=unclipped.txt)
+
+# ----------------------------------------------------------------------------
+
+# Test labels
+
+corrgram(mtcars[2:6], order=TRUE,
+         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
+         cex.labels=1.5,
+         upper.panel=panel.conf, lower.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=panel.txt)
 
 # ----------------------------------------------------------------------------
 
@@ -16,6 +49,7 @@ corrgram(ab, order=NULL, lower.panel=panel.pie, upper.panel=NULL,
          text.panel=panel.txt)
 
 corrgram(ab)
+
 # ----------------------------------------------------------------------------
 
 # Test 'order' argument
@@ -51,6 +85,7 @@ corrgram(auto, lower.panel=panel.ellipse, upper.panel=panel.ellipse)
 corrgram(auto, order=TRUE, dir="right",
          upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
 
+corrgram(auto, order=TRUE, main="Auto data (PC order)", upper.panel=panel.bar)
 # ----------------------------------------------------------------------------
 
 # Missing value in a correlation matrix.
