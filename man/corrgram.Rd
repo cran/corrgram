@@ -1,5 +1,6 @@
 \name{corrgram}
 \alias{corrgram}
+\alias{panel.bar}
 \alias{panel.conf}
 \alias{panel.density}
 \alias{panel.ellipse}
@@ -7,9 +8,7 @@
 \alias{panel.pie}
 \alias{panel.pts}
 \alias{panel.shade}
-\alias{panel.bar}
 \alias{panel.txt}
-\alias{col.corrgram}
 
 \title{Draw a correlogram}
 
@@ -20,43 +19,47 @@
 }
 
 \usage{
-corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade, ...,
+corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
   lower.panel=panel, upper.panel=panel, diag.panel=NULL,
-text.panel=textPanel, label.pos=0.5, label.srt=0, cex.labels=NULL,
-font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
+  text.panel=textPanel, label.pos=0.5, label.srt=0, cex.labels=NULL,
+  font.labels=1, row1attop=TRUE, dir="", gap=0, abs=FALSE,
+  col.regions=colorRampPalette(c("red","salmon","white","royalblue","navy")),
+  ...)
 }
 
 \arguments{
-  \item{x}{A \emph{tall} data frame with one observation per row.  Only
-    numeric values are allowed.}
-  \item{type}{Use 'data' or 'cor'/'corr' to specify that 'x' is
-    data or a correlation matrix.}
+  \item{x}{A \emph{tall} data frame with one observation per row, or a
+    correlation matrix.}
+  \item{type}{Use 'data' or 'cor'/'corr' to explicitly specify that 'x' is
+    data or a correlation matrix.  Rarely needed.}
   \item{order}{Should variables be re-ordered?  Use TRUE/"PCA" for
     PCA-based re-ordering, "OLO" for optimal leaf ordering.
   }
   \item{labels}{Labels to use (instead of data frame variable names) for diagonal panels}
-  \item{panel}{function used to plot the contents of each panel}
-  \item{...}{additional arguments passed to methods}
+  \item{panel}{Function used to plot the contents of each panel}
   \item{lower.panel, upper.panel}{Separate panel functions used
     below/above the diagonal}
-  \item{diag.panel, text.panel}{panel function used on the diagonal}
-  \item{label.pos}{vertical placement of label in diagonal panels}
+  \item{diag.panel, text.panel}{Panel function used on the diagonal}
+  \item{label.pos}{Vertical placement of label in diagonal panels}
   \item{label.srt}{String rotation for diagonal labels}
   \item{cex.labels, font.labels}{Graphics parameter for diagonal panels}
   \item{row1attop}{TRUE for diagonal like " \ ", FALSE for diagonal like
     " / ".}
   \item{dir}{Use \code{dir="left"} instead of 'row1attop'}
   \item{gap}{Distance between panels}
-  \item{abs}{Use absolute value of correlations for clustering?  Default FALSE}
+  \item{abs}{Use absolute value of correlations for clustering?  Default
+    FALSE}
+  \item{col.regions}{A \emph{function} returning a vector of colors}
+  \item{...}{Additional arguments passed to plotting methods.}
 }
 
 \details{
 
+  Note: Use the 'col.regions' argument to specify colors.
+  Earlier versions used a function 'col.corrgram' to specify colors.
+  
   Non-numeric columns in the data will be ignored.
   
-  This function is basically a modification of the \code{pairs.default}
-  function with the use of customized panel functions.
-
   The off-diagonal panels are specified with \code{panel.pts},
   \code{panel.pie}, \code{panel.shade}, \code{panel.bar},
   \code{panel.ellipse}, \code{panel.conf}.
@@ -64,9 +67,12 @@ font.labels=1, row1attop=TRUE, dir="left", gap=0, abs=FALSE)
   Diagonal panels are specified with
   \code{panel.txt}, \code{panel.minmax}, \code{panel.density}.
 
-  The panel functions use \code{col.corrgram} to specify the colors.
-  Change this function if you desire to use a different palette.
+  This function is basically a modification of the \code{pairs.default}
+  function with the use of customized panel functions.
 
+  You can create your own panel functions by starting with one of the
+  included panel functions and making suitable modifications.
+  
   TODO: legend, grid graphics version.
 }
 

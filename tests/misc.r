@@ -1,6 +1,20 @@
 # misc.r
-# Time-stamp: <14 Aug 2012 13:44:06 c:/x/rpack/corrgram/tests/misc.r>
+# Time-stamp: <06 Nov 2012 14:13:17 c:/x/rpack/corrgram/tests/misc.r>
 
+# ----------------------------------------------------------------------------
+
+# Region colors used to default to the function "col.corrgram", but when the namespace
+# was forced on this package, the panel functions would look for "col.corrgram" inside
+# the namespace first, and never look in the global environment.
+# Bug report by Rob Kabacoff.
+
+# Use green -> brown colors
+col.earth <- function(ncol){  
+  colorRampPalette(c("darkgoldenrod4", "burlywood1", "darkkhaki", "darkgreen"))(ncol)}
+corrgram(mtcars, order=TRUE, lower.panel=panel.shade, upper.panel=panel.pie,
+         text.panel=panel.txt, main="A Corrgram of a Different Color",
+         col.regions=col.earth)
+ 
 # ----------------------------------------------------------------------------
 
 # Print diagonal text unclipped.
@@ -26,7 +40,7 @@ corrgram(mtcars[2:6], order=TRUE,
 
 # ----------------------------------------------------------------------------
 
-# Test labels
+# Test "labels" argument
 
 corrgram(mtcars[2:6], order=TRUE,
          labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
@@ -36,7 +50,7 @@ corrgram(mtcars[2:6], order=TRUE,
 
 # ----------------------------------------------------------------------------
 
-# From a bug reported 2011-06
+# Bug with negative correlation
 
 set.seed(123)
 a = seq(1,100)
@@ -77,15 +91,26 @@ corrgram(auto, type='data')
 
 # ----------------------------------------------------------------------------
 
-# Test panel functions
+# Test that non-numeric columns in data.frame are ignored.
+
+mt2 <- mtcars
+mt2$model <- rownames(mt2)
+corrgram(mt2)
+# ----------------------------------------------------------------------------
+
+# Test all the panel functions
 corrgram(auto, lower.panel=panel.conf, upper.panel=panel.pts)
 corrgram(auto, lower.panel=panel.pie, upper.panel=panel.shade)
 corrgram(auto, lower.panel=panel.ellipse, upper.panel=panel.ellipse)
-# Reverse diagonal, use points in lower part
+corrgram(auto, order=TRUE, main="Auto data (PC order)", upper.panel=panel.bar)
+corrgram(auto, lower.panel=panel.shade, upper.panel=NULL)
+
+# Test the diagonal direction.  Reverse diagonal, use points in lower part
 corrgram(auto, order=TRUE, dir="right",
          upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
+corrgram(auto, order=TRUE, dir="/",
+         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
 
-corrgram(auto, order=TRUE, main="Auto data (PC order)", upper.panel=panel.bar)
 # ----------------------------------------------------------------------------
 
 # Missing value in a correlation matrix.
@@ -108,3 +133,50 @@ cor(dat, use="pair")
 corrgram(dat)
 
 # ----------------------------------------------------------------------------
+
+# Manually add a legend for coloring points
+
+panel.colpts <- function(x, y, corr=NULL, col.regions, ...){  
+  # For correlation matrix, do nothing
+  if(!is.null(corr)) return()
+  plot.xy(xy.coords(x, y), type="p", ..., col=1:2)
+  box(col="lightgray")
+}
+corrgram(auto, lower.panel=panel.conf, upper.panel=panel.colpts)
+
+require(grid)
+grid.clip()
+pushViewport(viewport(.5, .95, width=stringWidth("Group1"),
+                      height=unit(2,"lines"),
+                      name="pagenum", gp=gpar(fontsize=8)))
+grid.legend(pch=1:2, labels=c("Group1","Group2"), gp=gpar(col=c('red')))
+popViewport()
+
+# ----------------------------------------------------------------------------
+
+# How can I put the variable names outside the plot?  This shows one way...
+# horribly ugly hack.
+side.txt <- function (x = 0.5, y = 0.5, txt, cex, font, srt) {
+  NULL
+}
+
+corrgram(mtcars[2:6], order=TRUE,
+         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
+         cex.labels=1.5,
+         upper.panel=panel.conf, lower.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=side.txt)
+
+require("grid")
+grid.clip()
+lab <- "Displacement"
+
+pushViewport(viewport(.04, .5, width = stringWidth(lab), angle=90, 
+                      height = unit(2, "lines"), name = "pagenum", gp = gpar(fontsize = 8)))
+grid.text(lab, gp=gpar(srt=45), just = c("left", "bottom"))
+popViewport()
+
+pushViewport(viewport(.5, .04, width = stringWidth(lab),
+                      height = unit(2, "lines"), name = "pagenum", gp = gpar(fontsize = 8)))
+grid.text(lab, gp=gpar(srt=45), just = c("left", "bottom"))
+popViewport()
+
