@@ -67,6 +67,8 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
   Diagonal panels are specified with
   \code{panel.txt}, \code{panel.minmax}, \code{panel.density}.
 
+  Use a NULL panel to omit drawing the panel.
+  
   This function is basically a modification of the \code{pairs.default}
   function with the use of customized panel functions.
 
@@ -83,59 +85,35 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
 \references{
   Friendly, Michael.  2002.  Corrgrams: Exploratory Displays for Correlation
   Matrices.  \emph{The American Statistician}, 56, 316--324.
-  url{http://www.math.yorku.ca/SCS/Papers/corrgram.pdf}
+  \url{http://datavis.ca/papers/corrgram.html}
   
   A SAS macro by Michael Friendly is at
-  \url{http://www.math.yorku.ca/SCS/sasmac/corrgram.html}.
+  \url{http://datavis.ca/sasmac/corrgram.html}.
 }
 
 \author{Kevin Wright}
 
-\seealso{The \code{plotcorr} function in the \code{ellipse} package has
-  some similarities.
-}
-
 \examples{
+# To reproduce the figures in Michael Friendly's paper, see the file
+# 'friendly.r' in this package's test directory.
 
-# Demonstrate density panel, confidence panel
+# Demonstrate density panel, correlation confidence panel
 corrgram(iris, lower.panel=panel.pts, upper.panel=panel.conf,
          diag.panel=panel.density)
 
-# Most of the following are from the paper by Michael Friendly.
-
-# Figure 2
+# Demonstrate panel.shade, panel.pie, principal component ordering
 vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
            "Putouts","RBI","Runs","Walks","Years")
-corrgram(baseball[,vars2], order=TRUE, main="Baseball data PC2/PC1 order",
-         lower.panel=panel.shade, upper.panel=panel.pie,
-         text.panel=panel.txt)
+corrgram(baseball[vars2], order=TRUE, main="Baseball data PC2/PC1 order",
+         lower.panel=panel.shade, upper.panel=panel.pie)
 
-# Figure 3
-baseball.cor <- cor(baseball[,vars2], use='pair')
-baseball.eig <- eigen(baseball.cor)$vectors[,1:2]
-e1 <- baseball.eig[,1]
-e2 <- baseball.eig[,2]
-plot(e1,e2,col='white', xlim=range(e1,e2), ylim=range(e1,e2))
-arrows(0, 0, e1, e2, cex=0.5, col="red", length=0.1)
-text(e1,e2, rownames(baseball.cor), cex=0.75)
+# Demonstrate panel.bar, panel.ellipse, panel.minmax, col.regions
+corrgram(auto, order=TRUE, main="Auto data (PC order)",
+lower.panel=panel.ellipse, upper.panel=panel.bar, diag.panel=panel.minmax,
+col.regions=colorRampPalette(c("darkgoldenrod4", "burlywood1", "darkkhaki", "darkgreen")))
 
-# Figure 4b
-corrgram(baseball[,vars2], order=TRUE,
-         main="Baseball data (PC order)",
-         panel=panel.shade, text.panel=panel.txt)
-
-# Figure 5
-corrgram(baseball, order=TRUE, main="Baseball data (PC order)")
-
-# Figure 6. Slightly different from Friendly.
-corrgram(auto, order=TRUE, main="Auto data (PC order)")
-
-# For figure 7, 8, see this package's test suite
-
-# Figure 11.  
-corrgram(baseball[,vars2], order=TRUE,
-         main="Baseball correlation ellipses",
-         panel=panel.ellipse, text.panel=panel.txt, diag.panel=panel.minmax)
+# 'vote' is a correlation matrix, not a data frame
+corrgram(vote, order=TRUE)
 
 }
 

@@ -1,5 +1,43 @@
 # misc.r
-# Time-stamp: <06 Nov 2012 14:13:17 c:/x/rpack/corrgram/tests/misc.r>
+# Time-stamp: <22 Aug 2013 15:53:55 c:/x/rpack/corrgram/tests/misc.r>
+
+if(FALSE){ # No need to test automatically
+
+# ----------------------------------------------------------------------------
+
+# Crude way to add labels along the axes
+
+corrgram(x = iris, labels = NULL, lower.panel = panel.pts,
+         upper.panel = panel.conf, diag.panel = panel.density)
+# Draw the axes and note the position of the scales
+axis(1)
+axis(2)
+# Add labels in outer margins
+text(x = seq(from = 0, to = 2.6, length = 4), y = 0.01,
+     labels = names(iris[, -5]), pos = 3, cex = 0.5)
+text(x = -0.5, y = seq(from = 0.1, to=.45, length = 4),
+     labels = rev(names(iris[, -5])), srt=90, pos = 3, cex = 0.5)
+
+# ----------------------------------------------------------------------------
+
+# Test all the panel functions
+corrgram(auto, lower.panel=panel.conf, upper.panel=panel.pts)
+corrgram(auto, text.panel=NULL, diag.panel=panel.density)
+corrgram(auto, text.panel=NULL, diag.panel=NULL)
+corrgram(auto, diag.panel=panel.density)
+corrgram(auto, lower.panel=panel.pie, upper.panel=panel.shade)
+corrgram(auto, panel=panel.ellipse) # note: latticeExtra also has panel.ellipse
+corrgram(auto, upper.panel=panel.bar)
+corrgram(auto, lower.panel=panel.shade, upper.panel=NULL)
+corrgram(auto, text.panel=panel.txt, diag.panel=panel.minmax)
+
+# ----------------------------------------------------------------------------
+
+# Test the diagonal direction.  Reverse diagonal, use points in lower part
+corrgram(auto, order=TRUE, dir="right",
+         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
+corrgram(auto, order=TRUE, dir="/",
+         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
 
 # ----------------------------------------------------------------------------
 
@@ -9,34 +47,23 @@
 # Bug report by Rob Kabacoff.
 
 # Use green -> brown colors
-col.earth <- function(ncol){  
-  colorRampPalette(c("darkgoldenrod4", "burlywood1", "darkkhaki", "darkgreen"))(ncol)}
+col.earth <- colorRampPalette(c("darkgoldenrod4", "burlywood1", "darkkhaki", "darkgreen"))
 corrgram(mtcars, order=TRUE, lower.panel=panel.shade, upper.panel=panel.pie,
          text.panel=panel.txt, main="A Corrgram of a Different Color",
          col.regions=col.earth)
- 
+
 # ----------------------------------------------------------------------------
 
-# Print diagonal text unclipped.
-# This has a slight quirk...the red box is only drawn the first time.  Calling
-# corrgram a 2nd time doesn't draw the red box.
+# Test 'order' argument
 
-require('gridBase')
-unclipped.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
-  vps <- baseViewports()
-  vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
-  pushViewport(vps$inner) # Figure region
-  grid.rect(gp=gpar(lwd=3, col="red"))
-  pushViewport(vps$figure) # The diagonal box region
-  grid.rect(gp=gpar(lwd=3, col="blue"))
-  grid.text(txt, x=x,y=y, just='center', gp=gpar(cex=cex))
-  popViewport(2)
-}
-corrgram(mtcars[2:6], order=TRUE,
-         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
-         cex.labels=2,
-         upper.panel=panel.conf, lower.panel=panel.pie,
-         diag.panel=panel.minmax, text.panel=unclipped.txt)
+corrgram(mtcars)
+corrgram(mtcars, order=NULL)
+corrgram(mtcars, order=FALSE)
+corrgram(mtcars, order=TRUE)
+corrgram(mtcars, order="PC")
+corrgram(mtcars, order="OLO")
+corrgram(mtcars, order="PC", abs=TRUE)
+corrgram(mtcars, order="OLO", abs=TRUE)
 
 # ----------------------------------------------------------------------------
 
@@ -66,19 +93,6 @@ corrgram(ab)
 
 # ----------------------------------------------------------------------------
 
-# Test 'order' argument
-
-corrgram(mtcars)
-corrgram(mtcars, order=NULL)
-corrgram(mtcars, order=FALSE)
-corrgram(mtcars, order=TRUE)
-corrgram(mtcars, order="PC")
-corrgram(mtcars, order="OLO")
-corrgram(mtcars, order="PC", abs=TRUE)
-corrgram(mtcars, order="OLO", abs=TRUE)
-
-# ----------------------------------------------------------------------------
-
 # Test 'type'
 corrgram(vote)
 corrgram(vote, type='corr')
@@ -96,21 +110,6 @@ corrgram(auto, type='data')
 mt2 <- mtcars
 mt2$model <- rownames(mt2)
 corrgram(mt2)
-# ----------------------------------------------------------------------------
-
-# Test all the panel functions
-corrgram(auto, lower.panel=panel.conf, upper.panel=panel.pts)
-corrgram(auto, lower.panel=panel.pie, upper.panel=panel.shade)
-corrgram(auto, lower.panel=panel.ellipse, upper.panel=panel.ellipse)
-corrgram(auto, order=TRUE, main="Auto data (PC order)", upper.panel=panel.bar)
-corrgram(auto, lower.panel=panel.shade, upper.panel=NULL)
-
-# Test the diagonal direction.  Reverse diagonal, use points in lower part
-corrgram(auto, order=TRUE, dir="right",
-         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
-corrgram(auto, order=TRUE, dir="/",
-         upper.panel=panel.ellipse, lower.panel=panel.pts, diag.panel=panel.minmax)
-
 # ----------------------------------------------------------------------------
 
 # Missing value in a correlation matrix.
@@ -134,9 +133,62 @@ corrgram(dat)
 
 # ----------------------------------------------------------------------------
 
+# Print diagonal text unclipped.
+# This has a slight quirk...the red box is only drawn the first time.  Calling
+# corrgram a 2nd time doesn't draw the red box.
+require('grid')
+require('gridBase')
+unclipped.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
+  vps <- baseViewports()
+  vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
+  pushViewport(vps$inner) # Figure region
+  grid.rect(gp=gpar(lwd=3, col="red"))
+  pushViewport(vps$figure) # The diagonal box region
+  grid.rect(gp=gpar(lwd=3, col="blue"))
+  grid.text(txt, x=x,y=y, just='center', gp=gpar(cex=cex))
+  popViewport(2)
+}
+corrgram(mtcars[2:6], order=TRUE,
+         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
+         cex.labels=2,
+         upper.panel=NULL, lower.panel=panel.pie,
+         diag.panel=panel.minmax, text.panel=unclipped.txt)
+
+# ----------------------------------------------------------------------------
+
+# Print diagonal text unclipped, with no upper panel
+require('grid')
+require('gridBase')
+unclipped.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
+  vps <- baseViewports()
+  vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
+  pushViewport(vps$inner) # Figure region
+  #grid.rect(gp=gpar(lwd=3, col="red"))
+  pushViewport(vps$figure) # The diagonal box region
+  #grid.rect(gp=gpar(lwd=3, col="blue"))
+  grid.text(txt, x=0,y=y, just='left', gp=gpar(cex=cex))
+  popViewport(2)
+}
+corrgram(mtcars[2:6], order=TRUE,
+         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
+         cex.labels=2,
+         upper.panel=NULL, lower.panel=panel.pie,
+         text.panel=unclipped.txt)
+
+# ----------------------------------------------------------------------------
+
+# Diagonal labels
+
+panel.txt45 <- function(x=0.5, y=0.5, txt, cex, font, srt){
+  text(x, y, txt, cex=cex, font=font, srt= -45)
+}
+corrgram(auto, text.panel=panel.txt45, diag.panel=panel.minmax)
+
+# ----------------------------------------------------------------------------
+
 # Manually add a legend for coloring points
 
-panel.colpts <- function(x, y, corr=NULL, col.regions, ...){  
+panel.colpts <- function(x, y, corr=NULL, col.regions, ...){
   # For correlation matrix, do nothing
   if(!is.null(corr)) return()
   plot.xy(xy.coords(x, y), type="p", ..., col=1:2)
@@ -152,31 +204,6 @@ pushViewport(viewport(.5, .95, width=stringWidth("Group1"),
 grid.legend(pch=1:2, labels=c("Group1","Group2"), gp=gpar(col=c('red')))
 popViewport()
 
+} # end if
+
 # ----------------------------------------------------------------------------
-
-# How can I put the variable names outside the plot?  This shows one way...
-# horribly ugly hack.
-side.txt <- function (x = 0.5, y = 0.5, txt, cex, font, srt) {
-  NULL
-}
-
-corrgram(mtcars[2:6], order=TRUE,
-         labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
-         cex.labels=1.5,
-         upper.panel=panel.conf, lower.panel=panel.pie,
-         diag.panel=panel.minmax, text.panel=side.txt)
-
-require("grid")
-grid.clip()
-lab <- "Displacement"
-
-pushViewport(viewport(.04, .5, width = stringWidth(lab), angle=90, 
-                      height = unit(2, "lines"), name = "pagenum", gp = gpar(fontsize = 8)))
-grid.text(lab, gp=gpar(srt=45), just = c("left", "bottom"))
-popViewport()
-
-pushViewport(viewport(.5, .04, width = stringWidth(lab),
-                      height = unit(2, "lines"), name = "pagenum", gp = gpar(fontsize = 8)))
-grid.text(lab, gp=gpar(srt=45), just = c("left", "bottom"))
-popViewport()
-

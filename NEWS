@@ -1,14 +1,24 @@
 
+Changes in version 1.5 (Aug 2013)
+
+  * Update references links.  (Request of Michael Friendly).
+
+  * Small bug with test for correlation matrix (Reported by F. Rosa)
+
 Changes in version 1.4 (Nov 2012)
 
   * Small bug with 'dir' argument.
-  * Panel colors are now specified via a 'col.regions' argument.  Could cause 
-    slight incompatability.
+
+  * Panel colors are now specified via a 'col.regions' argument.  The old
+    method of using 'col.corrgram' is ignored. Could cause  slight
+    incompatability.
+
   * Re-worked examples section for more variety.
 
 Changes in version 1.3 (Aug 2012)
 
   * Added 'panel.bar'.  (Request of dadrivr)
+
   * Added example for unclipped labels (in the test suite).
 
 Changes in version 1.2
@@ -38,7 +48,6 @@ Changes in version 1.0
 	'type' argument.  Panel functions need a 'corr' argument.
   * New ordering method 'OLO' using 'seriation' package.
   * Ordering can now be done on absolute value of correlations.
-  * Expanded test suite.
   * Fixed bug: Strongly negative correlations used no color.
 
 Changes in version 0.1 (Nov 2006)

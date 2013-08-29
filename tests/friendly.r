@@ -3,7 +3,7 @@
 
 # Re-produce the figures from Friendly's paper
 
-if(FALSE){
+if(FALSE){ 
   
 # Figure 2
 vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
@@ -56,7 +56,8 @@ rinv <- function(r){
 vars7 <- c("Years", "logSal", "Homer", "Putouts", "RBI", "Walks",
            "Runs", "Hits", "Atbat", "Errors", "Assists")
 cb <- cor(baseball[,vars7], use="pair")
-corrgram(-rinv(cb), main="Baseball data R^-1")
+require(graphics)
+corrgram(-rinv(cb), main=expression(paste("Baseball data ", R^-1)))
 
 # Figure 8
 require(Matrix) # For block diagonal function
