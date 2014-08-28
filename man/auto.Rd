@@ -8,7 +8,7 @@
 
 \description{
   The data give the following statistics for 74 automobiles in the
-  1979 model year as sold in the US. 
+  1979 model year as sold in the US.
 }
 
 \usage{data(auto)}
@@ -39,7 +39,7 @@
 }
 
 \references{
-  Originally published in 
+  Originally published in
   Chambers, Cleveland, Kleiner, and Tukey, \emph{Graphical Methods for Data Analysis},
   1983, pages 352-355.
 
@@ -48,8 +48,9 @@
 }
 
 \examples{
-data(auto)
+
 corrgram(auto[, -c(1:2)])
+
 }
 
 

@@ -1,5 +1,5 @@
 # corrgram.r
-# Time-stamp: <29 Aug 2013 12:47:11 c:/x/rpack/corrgram/R/corrgram.r>
+# Time-stamp: <28 Aug 2014 16:26:25 c:/x/rpack/corrgram/R/corrgram.r>
 
 # Author: Kevin Wright
 # Copyright 2006-2012 Kevin Wright
@@ -11,19 +11,25 @@
 
 # To do: Add a legend/ribbon
 
+# Idea: gcorr function for generalized pairs plot
+
 corrgram <-
   function (x, type=NULL,
-            order=FALSE, labels, panel = panel.shade, #...,
+            order=FALSE, labels, panel = panel.shade,
             lower.panel = panel, upper.panel = panel,
             diag.panel = NULL, text.panel = textPanel,
-            label.pos = 0.5, label.srt=0,
+            label.pos = c(0.5, 0.5), label.srt=0,
             cex.labels = NULL, font.labels = 1,
             row1attop = TRUE, dir="", gap = 0,
             abs=FALSE,
             col.regions = colorRampPalette(c("red","salmon","white","royalblue","navy")),
+            cor.method="pearson",
             ...) {
 
   if(is.null(order)) order <- FALSE
+
+  # Former versions used label.pos=0.5 for vertical positioning.
+  if(length(label.pos) < 2) stop("label.pos needs a vector of length 2")
 
   # Direction
   if(dir=="") {
@@ -64,7 +70,7 @@ corrgram <-
 
   # If a data matrix, then calculate the correlation matrix
   if(type=="data")
-    cmat <- cor(x, use="pairwise.complete.obs")
+    cmat <- cor(x, use="pairwise.complete.obs", method=cor.method)
   else
     cmat <- x
   cmat <- if(abs) abs(cmat) else cmat
@@ -184,21 +190,19 @@ corrgram <-
               l.wid <- strwidth(labels, "user")
               cex.labels <- max(0.8, min(2, .9 / max(l.wid)))
             }
-            text.panel(0.5, label.pos, labels[i],
+            text.panel(label.pos[1], label.pos[2], labels[i],
                        cex = cex.labels, font = font.labels, srt=label.srt)
           }
-        } else if(i < j) {
-          # Lower panel
+        } else if(i < j) { # Lower panel
           if(type=="data")
-            localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, ...)
+            localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, cor.method, ...)
           else
-            localLowerPanel(NULL, NULL, x[j,i], col.regions, ...)
-        } else {
-          # Upper panel
+            localLowerPanel(NULL, NULL, x[j,i], col.regions, cor.method, ...)
+        } else { # Upper panel
           if(type=="data")
-            localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, ...)
+            localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, cor.method, ...)
           else
-            localUpperPanel(NULL, NULL, x[j,i], col.regions, ...)
+            localUpperPanel(NULL, NULL, x[j,i], col.regions, cor.method, ...)
         }
 
       } else { # No panel drawn
@@ -220,7 +224,7 @@ corrgram <-
 # ----------------------------------------------------------------------------
 # Panel functions
 
-panel.pts <- function(x, y, corr=NULL, col.regions, ...){
+panel.pts <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
   # For correlation matrix, do nothing
   if(!is.null(corr)) return()
@@ -229,10 +233,10 @@ panel.pts <- function(x, y, corr=NULL, col.regions, ...){
   box(col="lightgray")
 }
 
-panel.pie <- function(x, y, corr=NULL, col.regions, ...){
+panel.pie <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
   # Coordinates of box
-  usr <- par()$usr
+  usr <- par()$usr  # par is in graphics package
   minx <- usr[1]; maxx <- usr[2]
   miny <- usr[3]; maxy <- usr[4]
   # Multiply the radius by .97 so the circles do not overlap
@@ -246,9 +250,8 @@ panel.pie <- function(x, y, corr=NULL, col.regions, ...){
   circ <- cbind(centerx + cos(angles)*rx, centery + sin(angles)*ry)
   lines(circ[,1], circ[,2], col='gray30',...)
 
-  # If corr is NULL, then we calculate it
   if(is.null(corr))
-    corr <- cor(x, y, use='pair')
+    corr <- cor(x, y, use='pair', method=cor.method)
 
   # Overlay a colored polygon
   ncol <- 14
@@ -267,10 +270,10 @@ panel.pie <- function(x, y, corr=NULL, col.regions, ...){
 
 }
 
-panel.shade <- function(x, y, corr=NULL, col.regions, ...){
+panel.shade <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
   if(is.null(corr))
-    corr <- cor(x, y, use='pair')
+    corr <- cor(x, y, use='pair', method=cor.method)
 
   ncol <- 14
   pal <- col.regions(ncol)
@@ -289,7 +292,7 @@ panel.shade <- function(x, y, corr=NULL, col.regions, ...){
   box(col='lightgray')
 }
 
-panel.ellipse <- function(x,y, corr=NULL, col.regions, ...){
+panel.ellipse <- function(x,y, corr=NULL, col.regions, cor.method, ...){
 
   # For correlation matrix, do nothing
   if(!is.null(corr)) return()
@@ -329,7 +332,7 @@ panel.ellipse <- function(x,y, corr=NULL, col.regions, ...){
           col = "red", ...)
 }
 
-panel.bar <- function(x, y, corr=NULL, col.regions, ...){
+panel.bar <- function(x, y, corr=NULL, col.regions, cor.method, ...){
   # Use 'bars' as in Friendly, figure 1
 
   usr <- par()$usr
@@ -337,7 +340,7 @@ panel.bar <- function(x, y, corr=NULL, col.regions, ...){
   miny <- usr[3];  maxy <- usr[4]
 
   if (is.null(corr))
-    corr <- cor(x, y, use = "pair")
+    corr <- cor(x, y, use = "pair", method=cor.method)
   ncol <- 14
   pal <- col.regions(ncol)
   col.ind <- as.numeric(cut(corr, breaks = seq(from = -1, to = 1,
@@ -357,7 +360,7 @@ panel.bar <- function(x, y, corr=NULL, col.regions, ...){
 
 }
 
-panel.conf <- function(x, y, corr=NULL, col.regions, digits=2, cex.cor, ...){
+panel.conf <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, cex.cor, ...){
 
   auto <- missing(cex.cor)
   usr <- par("usr"); on.exit(par(usr))

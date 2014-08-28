@@ -1,5 +1,5 @@
 # misc.r
-# Time-stamp: <22 Aug 2013 15:53:55 c:/x/rpack/corrgram/tests/misc.r>
+# Time-stamp: <08 Aug 2014 16:26:23 c:/x/rpack/corrgram/tests/misc.r>
 
 if(FALSE){ # No need to test automatically
 
@@ -138,19 +138,19 @@ corrgram(dat)
 # corrgram a 2nd time doesn't draw the red box.
 require('grid')
 require('gridBase')
-unclipped.txt <- function(x=0.5, y=0.5, txt, cex, font, srt){
+unclipped.txt <- function(x=0.2, y=0.5, txt, cex, font, srt){
   vps <- baseViewports()
   vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
   pushViewport(vps$inner) # Figure region
   grid.rect(gp=gpar(lwd=3, col="red"))
   pushViewport(vps$figure) # The diagonal box region
   grid.rect(gp=gpar(lwd=3, col="blue"))
-  grid.text(txt, x=x,y=y, just='center', gp=gpar(cex=cex))
+  grid.text(txt, x=0.1,y=y, just='left', gp=gpar(cex=cex))
   popViewport(2)
 }
 corrgram(mtcars[2:6], order=TRUE,
          labels=c('Axle ratio','Weight','Displacement','Cylinders','Horsepower'),
-         cex.labels=2,
+         cex.labels=2, adj=0,
          upper.panel=NULL, lower.panel=panel.pie,
          diag.panel=panel.minmax, text.panel=unclipped.txt)
 
@@ -184,6 +184,9 @@ panel.txt45 <- function(x=0.5, y=0.5, txt, cex, font, srt){
 }
 corrgram(auto, text.panel=panel.txt45, diag.panel=panel.minmax)
 
+# Test label.pos
+corrgram(auto, label.srt=45, label.pos=c(.75,.75), cex.labels=2.5, upper=NULL)
+
 # ----------------------------------------------------------------------------
 
 # Manually add a legend for coloring points
@@ -204,6 +207,13 @@ pushViewport(viewport(.5, .95, width=stringWidth("Group1"),
 grid.legend(pch=1:2, labels=c("Group1","Group2"), gp=gpar(col=c('red')))
 popViewport()
 
+# ----------------------------------------------------------------------------
+
+# Test pearson vs spearman.
+
+corrgram(auto)
+corrgram(auto, cor.method="pearson")
+corrgram(auto, cor.method="spearman") # Slight change in colors
+
 } # end if
 
-# ----------------------------------------------------------------------------

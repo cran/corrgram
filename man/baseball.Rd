@@ -52,25 +52,25 @@ The data are for 322 Major Leaque Baseball regular and substitute hitters in 198
 \source{
   The version of the data used to create this data was found at
   \url{http://euclid.psych.yorku.ca/ftp/sas/sssg/data/baseball.sas}.
+
   Michael Friendly analyzed the data in: \bold{Corrgrams: Exploratory
   Displays for Correlation Matrices}, \emph{The American Statistician},
-  Nov 2002, Vol 56.  Online at:
-  \url{http://www.math.yorku.ca/SCS/Papers/corrgram.pdf}.
+  Nov 2002, Vol 56. \url{http://www.math.yorku.ca/SCS/Papers/corrgram.pdf}.
 }
 
 \references{
   The data was originally published for the 1988 ASA Statistical Graphics and
-  Computing Data Exposition: 
+  Computing Data Exposition:
   \url{http://lib.stat.cmu.edu/data-expo/1988.html}.
-  The  salary data  were  taken  from  Sports Illustrated, April 20, 1987.
-  The salary of any player not included  in  that  article  is 
-  listed  as an NA.  The 1986 and career statistics were taken
-  from The 1987 Baseball Encyclopedia Update published by Collier
-  Books, Macmillan  Publishing  Company, New York.  
+
+  The salary data were taken from Sports Illustrated, April 20, 1987.
+  The salary of any player not included in that article is listed as an
+  NA.  The 1986 and career statistics were taken from The 1987 Baseball
+  Encyclopedia Update published by Collier Books, Macmillan Publishing
+  Company, New York.
 }
 
 \examples{
-data(baseball)
 
 vars2 <- c("Assists","Atbat","Errors","Hits","Homer","logSal",
            "Putouts","RBI","Runs","Walks","Years")

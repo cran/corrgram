@@ -15,9 +15,9 @@
   No details.
 }
 \source{
-  Iversen, Torben, and David Soskice. 2006. Electoral
-  institutions and the politics of coalitions: Why some
-  democracies redistribute more than others.
+  Iversen, Torben, and David Soskice. 2006. Electoral institutions and
+  the politics of coalitions: Why some democracies redistribute more
+  than others.
   \emph{American  Political Science Review}, 100, 165-81.
 }
 \references{
@@ -25,7 +25,8 @@
   \url{http://tables2graphs.com/doku.php?id=03_descriptive_statistics#a_correlation_matrix}
 }
 \examples{
-data(vote)
+
 corrgram(vote, order=TRUE)
+
 }
 
