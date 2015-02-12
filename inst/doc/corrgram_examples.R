@@ -1,7 +1,6 @@
 ## ----setup, echo=FALSE, results="hide"--------------------------------------------------
 library("knitr")
-opts_chunk$set(fig.align="center",
-  fig.width=7, fig.height=7)
+opts_chunk$set(fig.align="center", fig.width=7, fig.height=7)
 options(width=90)
 
 ## ---------------------------------------------------------------------------------------

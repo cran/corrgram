@@ -34,7 +34,8 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
   \item{type}{Use 'data' or 'cor'/'corr' to explicitly specify that 'x' is
     data or a correlation matrix.  Rarely needed.}
   \item{order}{Should variables be re-ordered?  Use TRUE/"PCA" for
-    PCA-based re-ordering, "OLO" for optimal leaf ordering.
+    PCA-based re-ordering.  Options from the 'seriate' package include
+    "OLO" for optimal leaf ordering, "GW", and "HC".
   }
   \item{labels}{Labels to use (instead of data frame variable names) for diagonal panels}
   \item{panel}{Function used to plot the contents of each panel}
@@ -76,7 +77,8 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
   function with the use of customized panel functions.
 
   The panel.conf function uses \code{cor.test} and calculates pearson
-  correlations.
+  correlations.  Confidence intervals are not available
+  in \code{cor.test} for other methods (kendall, spearman).
 
   You can create your own panel functions by starting with one of the
   included panel functions and making suitable modifications.  Note that
@@ -95,7 +97,7 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
 \references{
   Friendly, Michael.  2002.  Corrgrams: Exploratory Displays for Correlation
   Matrices.  \emph{The American Statistician}, 56, 316--324.
-  \url{http://datavis.ca/papers/corrgram.html}
+  \url{http://datavis.ca/papers/corrgram.pdf}
 
   A SAS macro by Michael Friendly is at
   \url{http://datavis.ca/sasmac/corrgram.html}.
