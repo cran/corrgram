@@ -101,6 +101,9 @@ corrgram(x, type=NULL, order = FALSE, labels, panel=panel.shade,
 
   A SAS macro by Michael Friendly is at
   \url{http://datavis.ca/sasmac/corrgram.html}.
+
+  D. J. Murdoch and E. D. Chow. 1996. A Graphical Display of Large
+  Correlation Matrices.  The American Statistician, 50, 178-180.
 }
 
 \author{Kevin Wright}
