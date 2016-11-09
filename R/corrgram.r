@@ -1,12 +1,10 @@
 # corrgram.r
-# Time-stamp: <15 Jul 2016 16:59:43 c:/x/rpack/corrgram/R/corrgram.R>
+# Time-stamp: <08 Nov 2016 13:41:55 c:/x/rpack/corrgram/R/corrgram.r>
 
-# The corrgram function was derived from the 'pairs' function.
-# Code for plotting ellipses was derived from the ellipse package.
+# To do: Add a legend/ribbon.  See 'corrplot' package for a different
+# way to calculate the layout.
 
-# To do: Add a legend/ribbon
-
-
+# ----------------------------------------------------------------------------
 
 #' Draw a correlogram
 #' 
@@ -15,8 +13,7 @@
 #' show the correlation value.
 #' 
 #' 
-#' Note: Use the 'col.regions' argument to specify colors.  Earlier versions
-#' used a function 'col.corrgram' to specify colors.
+#' Note: Use the 'col.regions' argument to specify colors.
 #' 
 #' Non-numeric columns in the data will be ignored.
 #' 
@@ -49,31 +46,48 @@
 #' 
 #' @param x A \emph{tall} data frame with one observation per row, or a
 #' correlation matrix.
+#' 
 #' @param type Use 'data' or 'cor'/'corr' to explicitly specify that 'x' is
 #' data or a correlation matrix.  Rarely needed.
+#' 
 #' @param order Should variables be re-ordered?  Use TRUE/"PCA" for PCA-based
 #' re-ordering.  Options from the 'seriate' package include "OLO" for optimal
 #' leaf ordering, "GW", and "HC".
+#' 
 #' @param labels Labels to use (instead of data frame variable names) for
-#' diagonal panels
+#' diagonal panels. If 'order' option is used, this vector of labels will be
+#' also be reordered by the function appropriately.
+#' 
 #' @param panel Function used to plot the contents of each panel
+#' 
 #' @param lower.panel,upper.panel Separate panel functions used below/above the
 #' diagonal
+#' 
 #' @param diag.panel,text.panel Panel function used on the diagonal
+#' 
 #' @param label.pos Horizontal and vertical placement of label in diagonal
 #' panels
+#' 
 #' @param label.srt String rotation for diagonal labels
+#' 
 #' @param cex.labels,font.labels Graphics parameter for diagonal panels
+#' 
 #' @param row1attop TRUE for diagonal like " \ ", FALSE for diagonal like " / ".
+#' 
 #' @param dir Use \code{dir="left"} instead of 'row1attop'
+#' 
 #' @param gap Distance between panels
+#' 
 #' @param abs Use absolute value of correlations for clustering?  Default FALSE
+#' 
 #' @param col.regions A \emph{function} returning a vector of colors
+#' 
 #' @param cor.method Correlation method to use in panel functions.  Default is
 #' 'pearson'.  Alternatives: 'spearman', 'kendall'
+#' 
 #' @param ... Additional arguments passed to plotting methods.
 #' 
-#' @return No value is returned.  A plot is created.
+#' @return The correlation matrix is returned. A plot is created.
 #' 
 #' @author Kevin Wright
 #' 
@@ -125,8 +139,7 @@
 #' @import seriation
 #' @import stats
 #' @export corrgram
-corrgram <-
-  function (x, type=NULL,
+corrgram <- function (x, type=NULL,
             order=FALSE, labels, panel = panel.shade,
             lower.panel = panel, upper.panel = panel,
             diag.panel = NULL, text.panel = textPanel,
@@ -189,6 +202,10 @@ corrgram <-
     cmat <- cor(x, use="pairwise.complete.obs", method=cor.method)
   else
     cmat <- x
+
+  # Save the correlation matrix for returning to user
+  cmat.return <- cmat
+  
   cmat <- if(abs) abs(cmat) else cmat
 
   # Re-order the data to group highly correlated variables
@@ -279,13 +296,15 @@ corrgram <-
   if (missing(labels)) {
     labels <- colnames(x)
     if (is.null(labels)) labels <- paste("var", 1:nc)
+  } else if (order!=FALSE) {
+      labels = labels[ord]
   }
   else if(is.null(labels)) has.labs <- FALSE
   if(is.null(text.panel)) has.labs <- FALSE
 
   oma <- if("oma" %in% nmdots) dots$oma else NULL
   main <- if("main" %in% nmdots) dots$main else NULL
-
+  
   if (is.null(oma)) {
     oma <- c(4, 4, 4, 4)
     if (!is.null(main)) oma[3] <- 6 # Space for the title
@@ -343,7 +362,7 @@ corrgram <-
     mtext(main, 3, 3, TRUE, 0.5, cex = cex.main, font = font.main)
   }
 
-  invisible(NULL)
+  invisible(cmat.return)
 }
 
 # ----------------------------------------------------------------------------
