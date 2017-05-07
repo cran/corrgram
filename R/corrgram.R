@@ -1,12 +1,5 @@
 # corrgram.r
-# Time-stamp: <03 Apr 2017 12:10:11 c:/x/rpack/corrgram/R/corrgram.R>
-
-  
-# http://stackoverflow.com/questions/40385321/how-to-have-axis-labels-in-r-corrgram
-# http://stackoverflow.com/questions/40436727/how-to-auto-adjust-r-figure-axis-labels-to-matrix-size
-#http://stackoverflow.com/questions/18294448/corrgram-package-horizontal-and-vertical-labels
-
-# http://stackoverflow.com/questions/28996341/customizing-what-variables-are-shown-on-the-sides-and-on-the-top-of-the-outputs
+# Time-stamp: <05 May 2017 16:04:24 c:/x/rpack/corrgram/R/corrgram.R>
 
 # color key
 # http://stackoverflow.com/questions/9852343/how-to-add-a-color-key-to-a-pairs-plot
@@ -154,7 +147,7 @@
 #'
 #' # outer labels, all options, larger margins, xlab, ylab
 #' labs=colnames(state.x77)
-#' corrgram(state.x77, oma=c(7, 7, 2, 2), main="state.x77",
+#' corrgram(state.x77, oma=c(7, 7, 2, 2),
 #'          outer.labels=list(bottom=list(labels=labs,cex=1.5,srt=60),
 #'                            left=list(labels=labs,cex=1.5,srt=30)))
 #' mtext("Bottom", side=1, cex=2, line = -1.5, outer=TRUE, xpd=NA)
@@ -198,12 +191,26 @@ corrgram <- function (x, type=NULL,
 
   # Do we have a data.frame or correlation matrix?
   # Note: Important to use "<=" instead of "<" (for example).
-  if(is.matrix(x) && isSymmetric(x) &&
-     min(x, na.rm=TRUE) >= -1 - .Machine$double.eps &&
-     max(x, na.rm=TRUE) <= 1 + .Machine$double.eps)
+  ## if(is.matrix(x) && isSymmetric(x) &&
+  ##    min(x, na.rm=TRUE) >= -1 - .Machine$double.eps &&
+  ##    max(x, na.rm=TRUE) <= 1 + .Machine$double.eps)
+  ##   maybeCorr <- TRUE
+  ## else
+  ##   maybeCorr <- FALSE
+  
+  # if a matrix x has only colnames, isSymmetric(x) reports FALSE
+  # use unname(x) so it will report TRUE
+  if(is.matrix(x) && isSymmetric(unname(x))) {
     maybeCorr <- TRUE
-  else
-    maybeCorr <- FALSE
+    if( min(x, na.rm=TRUE) < -1-.Machine$double.eps ) {
+      warning("Matrix symmetric, but some values < -1. Treated as data.frame.")
+      maybeCorr <- FALSE
+    }
+    if( max(x, na.rm=TRUE) >  1+.Machine$double.eps ) {
+      warning("Matrix symmetric, but some values > +1. Treated as data.frame.")
+      maybeCorr <- FALSE
+    }
+  } else maybeCorr <- FALSE
 
   if(is.null(type)){
     if(maybeCorr)
@@ -216,7 +223,7 @@ corrgram <- function (x, type=NULL,
   } else if(type=="cor" | type=="corr") {
     type <- "corr"
     if(!maybeCorr)
-      stop("This is NOT a correlation matrix.")
+      warning("This is NOT a correlation matrix.")
   } else {
     stop("unknown data type in 'corrgram'")
   }
@@ -425,7 +432,6 @@ corrgram.outer.labels <- function(side,nc,ord,ll){
   if((side==1 | side==3) & is.null(ll$srt)) ll$srt=90 # vert
   if((side==2 | side==4) & is.null(ll$srt)) ll$srt=0 # horiz
   
-  #browser()
   for(i in 1:nc){
     # row/column grid position down/right 
     if(side==1) { # bottom
@@ -453,16 +459,6 @@ corrgram.outer.labels <- function(side,nc,ord,ll){
       stop("'side' must be 1, 2, 3, or 4")
     }
     
-    #            usr <- par("usr") # should always be 0 1 0 1 right?
-    #            clip(x1,x2,y1,y2)
-    #            clip(usr[1], -2, usr[3], usr[4])
-    #clip(0, 1, 0, 1)
-    #axis(side=side, at=0.5, labels=ll$labels[i],
-    #     outer=TRUE,
-    #     mgp=c(3,0,0.5), # title, axis label, axis line
-    #     cex.axis=ll$cex,
-    #     las=ll$las,  # las: 0 parallel, 1 horiz, 2 perp, 3 vert
-    #     xpd=NA, lwd=NA)
   }
   
   return()
@@ -485,17 +481,17 @@ panel.pts <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 #' @export
 panel.pie <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
-  # Coordinates of box
+  # coordinates of box
   usr <- par()$usr  # par is in graphics package
   minx <- usr[1]; maxx <- usr[2]
   miny <- usr[3]; maxy <- usr[4]
-  # Multiply the radius by .97 so the circles do not overlap
-  rx <- (maxx-minx)/2 * .97
-  ry <- (maxy-miny)/2 * .97
+  # multiply the radius by .96 so the circles do not overlap
+  rx <- (maxx-minx)/2 * .96
+  ry <- (maxy-miny)/2 * .96
   centerx <- (minx+maxx)/2
   centery <- (miny+maxy)/2
 
-  # If corr not given, try to calculate it
+  # if corr not given, try to calculate it
   if(is.null(corr)) {
     if(sum(complete.cases(x,y)) < 2) {
       warning("Need at least 2 complete cases for cor()")
@@ -505,25 +501,25 @@ panel.pie <- function(x, y, corr=NULL, col.regions, cor.method, ...){
     }
   }
 
-  # Draw circle
-  segments <- 60
-  angles <- seq(0,2*pi,length=segments)
+  # draw circle
+  segments <- 180
+  angles <- seq(0, 2*pi, length=segments)
   circ <- cbind(centerx + cos(angles)*rx, centery + sin(angles)*ry)
-  lines(circ[,1], circ[,2], col='gray30',...)
+  lines(circ[,1], circ[,2], col='gray40',...)
 
-  # Overlay a colored polygon
   ncol <- 14
   pal <- col.regions(ncol)
   col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length=ncol+1),
                             include.lowest=TRUE))
   col.pie <- pal[col.ind]
 
-  segments <- round(60*abs(corr),0)
+  # overlay a colored polygon
+  segments <- round(180*abs(corr),0)
   if(segments>0){ # Watch out for the case with 0 segments
     angles <- seq(pi/2, pi/2+(2*pi* -corr), length=segments)
     circ <- cbind(centerx + cos(angles)*rx, centery + sin(angles)*ry)
     circ <- rbind(circ, c(centerx, centery), circ[1,])
-    polygon(circ[,1], circ[,2], col=col.pie)
+    polygon(circ[,1], circ[,2], col=col.pie,border="gray40")
   }
 
 }
@@ -577,7 +573,7 @@ panel.ellipse <- function(x,y, corr=NULL, col.regions, cor.method, ...){
   keep <- (!is.na(x) & !is.na(y))
   center <- c(mean(x[keep]),mean(y[keep]))
   radius <- sqrt(dfn*qf(.68,dfn,dfd))
-  segments <- 75
+  segments <- 180
   angles <- seq(0,2*pi,length=segments)
   unit.circle <- cbind(cos(angles),sin(angles))
   ellipse.pts <- t(center+radius*t(unit.circle%*%chol(shape)))
@@ -593,7 +589,7 @@ panel.ellipse <- function(x,y, corr=NULL, col.regions, cor.method, ...){
   ellx <- ifelse(ellx > maxx, maxx, ellx)
   elly <- ifelse(elly < miny, miny, elly)
   elly <- ifelse(elly > maxy, maxy, elly)
-  lines(ellx, elly, col='gray30',...)
+  lines(ellx, elly, col='gray40',...)
 
   # Filled ellipse
   # polygon(ellx, elly, col="blue", ...)
