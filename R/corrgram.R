@@ -1,4 +1,4 @@
-# corrgram.r
+# corrgram.R
 # Time-stamp: <05 May 2017 16:04:24 c:/x/rpack/corrgram/R/corrgram.R>
 
 # color key
@@ -23,7 +23,7 @@
 #' Non-numeric columns in the data will be ignored.
 #' 
 #' The off-diagonal panels are specified with \code{panel.pts},
-#' \code{panel.pie}, \code{panel.shade}, \code{panel.bar},
+#' \code{panel.pie}, \code{panel.shade}, \code{panel.fill}, `\code{panel.bar},
 #' \code{panel.ellipse}, \code{panel.conf}. \code{panel.cor}.
 #' 
 #' Diagonal panels are specified with \code{panel.txt}, \code{panel.minmax},
@@ -47,7 +47,7 @@
 #' TODO: legend, grid graphics version.
 #' 
 #' @aliases corrgram panel.bar panel.conf panel.cor panel.density panel.ellipse
-#' panel.minmax panel.pie panel.pts panel.shade panel.txt
+#' panel.fill panel.minmax panel.pie panel.pts panel.shade panel.txt
 #' 
 #' @param x A \emph{tall} data frame with one observation per row, or a
 #' correlation matrix.
@@ -166,17 +166,19 @@ corrgram <- function (x, type=NULL,
             cex.labels = NULL, font.labels = 1,
             row1attop = TRUE, dir="", gap = 0,
             abs=FALSE,
-            col.regions = colorRampPalette(c("red","salmon","white","royalblue","navy")),
+            col.regions = colorRampPalette(c("red","salmon","white",
+                                             "royalblue","navy")),
             cor.method="pearson",
             outer.labels=NULL,
             ...) {
-  # Need graphics
-  # Need grDevices
-  # Need seriation for seriate
-  # Need stats for cor, qf
-    
+
   if(is.null(order)) order <- FALSE
 
+  if( cor.method != "pearson" &
+      (deparse(substitute(upper.panel)) == "panel.conf" | 
+       deparse(substitute(upper.panel)) == "panel.conf"))
+    stop("'panel.conf' only allows 'pearson' method. Try 'panel.cor' instead.")
+  
   # Former versions used label.pos=0.5 for vertical positioning.
   if(length(label.pos) < 2) stop("label.pos needs a vector of length 2")
 
@@ -213,14 +215,11 @@ corrgram <- function (x, type=NULL,
   } else maybeCorr <- FALSE
 
   if(is.null(type)){
-    if(maybeCorr)
-      type <- "corr"
-    else
-      type <- "data"
+    type <- if(maybeCorr) "corr" else "data"
   } else if(type=="data"){
     if(maybeCorr)
       warning("This looks like a correlation matrix.")
-  } else if(type=="cor" | type=="corr") {
+  } else if(type=="cor" || type=="corr") {
     type <- "corr"
     if(!maybeCorr)
       warning("This is NOT a correlation matrix.")
@@ -229,14 +228,15 @@ corrgram <- function (x, type=NULL,
   }
 
   # Remove non-numeric columns from data frames
-  if(type=="data" & !is.matrix(x)) x <- x[ , sapply(x, is.numeric)]
+  if(type=="data" && !is.matrix(x)) x <- x[ , vapply(x, is.numeric, logical(1))]
 
   # If a data matrix, then calculate the correlation matrix
-  if(type=="data")
+  if(type=="data") {
     cmat <- cor(x, use="pairwise.complete.obs", method=cor.method)
-  else
+  } else {
     cmat <- x
-
+  }
+    
   # Save the correlation matrix for returning to user, re-ordered below
   cmat.return <- cmat
 
@@ -246,7 +246,7 @@ corrgram <- function (x, type=NULL,
   # Default order
   if(order==FALSE) ord <- 1:nrow(cmat)
   # Re-order the data to group highly correlated variables
-  if(order==TRUE | order=="PC" | order=="PCA"){
+  if(order==TRUE || order=="PC" || order=="PCA"){
     # Order by angle size between PCAs (first two) of correlation matrix
     x.eigen <- eigen(cmat)$vectors[,1:2]
     e1 <- x.eigen[,1]
@@ -279,14 +279,6 @@ corrgram <- function (x, type=NULL,
 
   textPanel <- function(x = 0.5, y = 0.5, txt, cex, font, srt) {
     text(x, y, txt, cex=cex, font=font, srt=srt)
-  }
-
-  localAxis <- function(side, x, y, xpd, bg, col=NULL, main, oma, ...) {
-    ## Explicitly ignore any color argument passed in as
-    ## it was most likely meant for the data points and
-    ## not for the axis.
-    if(side %%2 == 1) Axis(x, side=side, xpd=NA, ...)
-    else Axis(y, side=side, xpd=NA, ...)
   }
 
   # Don't pass some arguments on to the panel functions via the '...'
@@ -335,7 +327,7 @@ corrgram <- function (x, type=NULL,
     labels <- colnames(x)
     if (is.null(labels)) labels <- paste("var", 1:nc)
   } else if (order!=FALSE) {
-      labels = labels[ord]
+      labels <- labels[ord]
   } else if(is.null(labels)) has.labs <- FALSE
   if(is.null(text.panel)) has.labs <- FALSE
 
@@ -348,7 +340,7 @@ corrgram <- function (x, type=NULL,
     oma <- c(4, 4, 4, 4)
     if (!is.null(main)) oma[3] <- 6 # Space for the title
   }
-  # corrgram uses mfrow, plotting down the columns
+
   opar <- par(mfrow = c(nc, nc), mar = rep.int(gap/2, 4), oma = oma)
   on.exit(par(opar))
 
@@ -356,7 +348,9 @@ corrgram <- function (x, type=NULL,
   for (i in if(dir=="left") 1:nc else nc:1)
     for (j in 1:nc) {
       # Set up plotting area
-      localPlot(x[, j], x[, i], xlab = "", ylab = "", axes = FALSE, type = "n", ...)
+      localPlot(x[, j], x[, i], xlab = "", ylab = "", 
+                axes = FALSE, type = "n", ...)
+      
       if(i == j || (i < j && has.lower) || (i > j && has.upper) ) {
 
         if(i == j) {
@@ -378,14 +372,18 @@ corrgram <- function (x, type=NULL,
             text.panel(label.pos[1], label.pos[2], labels[i],
                        cex = cex.labels, font = font.labels, srt=label.srt)
           }
-        } else if(i < j) { # Lower panel
+        } else if(i < j) { 
+          # Lower panel
           if(type=="data")
-            localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, cor.method, ...)
+            localLowerPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, 
+                            col.regions, cor.method, ...)
           else
             localLowerPanel(NULL, NULL, x[j,i], col.regions, cor.method, ...)
-        } else { # Upper panel
+        } else { 
+          # Upper panel
           if(type=="data")
-            localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, col.regions, cor.method, ...)
+            localUpperPanel(as.vector(x[, j]), as.vector(x[, i]), NULL, 
+                            col.regions, cor.method, ...)
           else
             localUpperPanel(NULL, NULL, x[j,i], col.regions, cor.method, ...)
         }
@@ -397,7 +395,8 @@ corrgram <- function (x, type=NULL,
     }
 
   if (!is.null(main)) {
-    font.main <- if("font.main" %in% nmdots) dots$font.main else par("font.main")
+    font.main <- 
+      if("font.main" %in% nmdots) dots$font.main else par("font.main")
     cex.main <- if("cex.main" %in% nmdots) dots$cex.main else par("cex.main")
     mtext(main, 3, 3, TRUE, 0.5, cex = cex.main, font = font.main)
   }
@@ -417,21 +416,27 @@ corrgram <- function (x, type=NULL,
 }
 
 corrgram.outer.labels <- function(side,nc,ord,ll){
+  # side = 1,2,3,4
+  # nc
+  # ord = re-ordering of columns/rows
   # ll=list(labels,cex,las,srt)
   # inspired by Leo Leopold, with modifications to rotate text from
   # http://menugget.blogspot.com/2014/08/rotated-axis-labels-in-r-plots.html
   
   if(is.null(ll)) return()
   
+  # In case text.panel=NULL, we need to set par(usr)
+  par(usr = c(0, 1, 0, 1))
+  
   if(length(ll$labels) != nc)
     stop("The length of labels of side ", side, " does not match the number of columns of the corrgram.")
   
   # default cex, srt
-  ll$labels = ll$labels[ord]
+  ll$labels <- ll$labels[ord]
   if(is.null(ll$cex)) ll$cex=1
   if((side==1 | side==3) & is.null(ll$srt)) ll$srt=90 # vert
   if((side==2 | side==4) & is.null(ll$srt)) ll$srt=0 # horiz
-  
+
   for(i in 1:nc){
     # row/column grid position down/right 
     if(side==1) { # bottom
@@ -455,8 +460,6 @@ corrgram.outer.labels <- function(side,nc,ord,ll){
       clip(0, -2, 0, 1)
       text(x=1 + .05*(1-0), y=0.5, labels=ll$labels[i],
            cex=ll$cex, srt=ll$srt, adj=0, xpd=NA)
-    } else {
-      stop("'side' must be 1, 2, 3, or 4")
     }
     
   }
@@ -503,20 +506,20 @@ panel.pie <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
   # draw circle
   segments <- 180
-  angles <- seq(0, 2*pi, length=segments)
+  angles <- seq(from=0, to=2*pi, length.out=segments)
   circ <- cbind(centerx + cos(angles)*rx, centery + sin(angles)*ry)
   lines(circ[,1], circ[,2], col='gray40',...)
 
   ncol <- 14
   pal <- col.regions(ncol)
-  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length=ncol+1),
+  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length.out=ncol+1),
                             include.lowest=TRUE))
   col.pie <- pal[col.ind]
 
   # overlay a colored polygon
   segments <- round(180*abs(corr),0)
   if(segments>0){ # Watch out for the case with 0 segments
-    angles <- seq(pi/2, pi/2+(2*pi* -corr), length=segments)
+    angles <- seq(from=pi/2, to=pi/2+(2*pi* -corr), length.out=segments)
     circ <- cbind(centerx + cos(angles)*rx, centery + sin(angles)*ry)
     circ <- rbind(circ, c(centerx, centery), circ[1,])
     polygon(circ[,1], circ[,2], col=col.pie,border="gray40")
@@ -539,13 +542,12 @@ panel.shade <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 
   ncol <- 14
   pal <- col.regions(ncol)
-  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length=ncol+1),
+  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length.out=ncol+1),
                             include.lowest=TRUE))
   usr <- par("usr")
   # Solid fill
   rect(usr[1], usr[3], usr[2], usr[4], col=pal[col.ind], border=NA)
   # Add diagonal lines
-
   if(!is.na(corr)) {
     rect(usr[1], usr[3], usr[2], usr[4], density=5,
          angle=ifelse(corr>0, 45, 135), col="white")
@@ -574,7 +576,7 @@ panel.ellipse <- function(x,y, corr=NULL, col.regions, cor.method, ...){
   center <- c(mean(x[keep]),mean(y[keep]))
   radius <- sqrt(dfn*qf(.68,dfn,dfd))
   segments <- 180
-  angles <- seq(0,2*pi,length=segments)
+  angles <- seq(from=0, to=2*pi, length.out=segments)
   unit.circle <- cbind(cos(angles),sin(angles))
   ellipse.pts <- t(center+radius*t(unit.circle%*%chol(shape)))
   ellx <- ellipse.pts[,1]
@@ -621,7 +623,7 @@ panel.bar <- function(x, y, corr=NULL, col.regions, cor.method, ...){
   ncol <- 14
   pal <- col.regions(ncol)
   col.ind <- as.numeric(cut(corr, breaks = seq(from = -1, to = 1,
-                                    length = ncol + 1), include.lowest = TRUE))
+                                    length.out = ncol + 1), include.lowest = TRUE))
   col.bar <- pal[col.ind]
   if(corr < 0) {
     # Draw up from bottom
@@ -638,7 +640,34 @@ panel.bar <- function(x, y, corr=NULL, col.regions, cor.method, ...){
 }
 
 #' @export
-panel.cor <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, cex.cor, ...){
+panel.fill <- function(x, y, corr=NULL, col.regions, cor.method, ...){
+  
+  # If corr not given, try to calculate it
+  if(is.null(corr)) {
+    if(sum(complete.cases(x,y)) < 2) {
+      warning("Need at least 2 complete cases for cor()")
+      return()
+    } else {
+      corr <- cor(x, y, use='pair', method=cor.method)
+    }
+  }
+  
+  ncol <- 14
+  pal <- col.regions(ncol)
+  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length.out=ncol+1),
+                            include.lowest=TRUE))
+  usr <- par("usr")
+  # Solid fill
+  rect(usr[1], usr[3], usr[2], usr[4], col=pal[col.ind], border=NA)
+
+  # Boounding box needs to plot on top of the shading, so do it last.
+  box(col='lightgray')
+}
+
+
+#' @export
+panel.cor <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, 
+                      cex.cor, ...){
   # Correlation values only, colored
 
   # If corr not given, try to calculate it
@@ -657,17 +686,21 @@ panel.cor <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, cex.co
   
   ncol <- 14
   pal <- col.regions(ncol)
-  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length=ncol+1),
+  col.ind <- as.numeric(cut(corr, breaks=seq(from=-1, to=1, length.out=ncol+1),
                             include.lowest=TRUE))
   
+  # determine string width using absolute values so that
+  # negative numbers are not wider than positive numbers
+  abscorr <- formatC(abs(corr), digits=digits, format='f')
   corr <- formatC(corr, digits=digits, format='f')
-  if(auto) cex.cor <- 0.7/strwidth(corr)
+  if(auto) cex.cor <- 0.7/strwidth(abscorr)
   text(0.5, 0.5, corr, cex=cex.cor, col=pal[col.ind])
 
 }
 
 #' @export
-panel.conf <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, cex.cor, ...){
+panel.conf <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, 
+                       cex.cor, ...){
 
   auto <- missing(cex.cor)
   usr <- par("usr"); on.exit(par(usr))
@@ -679,29 +712,27 @@ panel.conf <- function(x, y, corr=NULL, col.regions, cor.method, digits=2, cex.c
   # For correlation matrix, only show the correlation
   if(!is.null(corr)) {
     est <- corr
-    #col.ind <- as.numeric(cut(est, breaks=seq(from=-1, to=1, length=ncol+1),
-    #                          include.lowest=TRUE))
+    # ignore signs for calculating string width
+    absest <- formatC(abs(est), digits=digits, format='f')
     est <- formatC(est, digits=digits, format='f')
-    if(auto) cex.cor <- 0.7/strwidth(est)
+    if(auto) cex.cor <- 0.7/strwidth(absest)
     text(0.5, 0.6, est, cex=cex.cor) #, col=pal[col.ind])
 
   } else { # Calculate correlation and confidence interval
     if(sum(complete.cases(x,y)) < 4) {
       warning("Need at least 4 complete cases for cor.test()")
     } else {
-      results <- cor.test(x, y, alternative = "two.sided")
-      
-      # First, the estimate
+      results <- cor.test(x, y, alternative = "two.sided", method=cor.method)
+      # point estimate
       est <- results$estimate
-      #col.ind <- as.numeric(cut(est, breaks=seq(from=-1, to=1, length=ncol+1),
-      #                          include.lowest=TRUE))
+      absest <- formatC(abs(est), digits=digits, format='f')
       est <- formatC(est, digits=digits, format='f')
-      if(auto) cex.cor <- 0.7/strwidth(est)
+      if(auto) cex.cor <- 0.7/strwidth(absest)
       text(0.5, 0.6, est, cex=cex.cor) #, col=pal[col.ind])
-      
+      # confidence interval, only for pearson
       ci <- results$conf.int
       ci <- formatC(ci, digits=2, format='f')
-      ci <- paste("(",ci[1],",",ci[2],")",sep="")
+      ci <- paste0("(",ci[1],",",ci[2],")")
       if(auto) cex.cor <- 0.8/strwidth(ci)
       text(0.5, 0.3, ci, cex=cex.cor) # , col=pal[col.ind])
     }
@@ -737,4 +768,60 @@ panel.minmax <- function(x, corr=NULL, ...){
   maxx <- round(max(x, na.rm=TRUE),2)
   text(minx, minx, minx, cex=1, adj=c(0,0))
   text(maxx, maxx, maxx, cex=1, adj=c(1,1))
+}
+
+# -----
+
+if(FALSE) {
+  
+# Exploring ideas for adding a legend
+  
+# layout doesn't work because par(mfrow=) is incompatible
+
+# -------------
+# https://stackoverflow.com/questions/13081310/combining-multiple-complex-plots-as-panels-in-a-single-figure/14567298#14567298
+
+# this works but is intolerably slow for 10x10
+
+library(gridGraphics)
+library(grid)
+
+grab_grob <- function(){
+  grid.echo()
+  grid.grab()
+}
+
+arr <- replicate(4, 
+                 matrix(runif(n=9),nrow=3,ncol=3), simplify = FALSE)
+
+library(gplots)
+gl <- lapply(1:4, function(i){
+  corrgram(arr[[i]])
+  grab_grob()
+})
+
+grid.newpage()
+library(gridExtra)
+grid.arrange(grobs=gl, ncol=2, clip=TRUE)
+
+# -------------
+
+# This also works, but is very slow because of grid.echo
+  library(gridExtra)
+  library(corrgram)
+  corrgram(iris)
+  grid.echo() 
+  p1 = grid.grab(warn=0)
+  corrgram(state.x77)
+  grid.echo() # re-draw using grid graphics...slow
+  p2 = grid.grab()
+  grid.newpage(warn=0)
+  grid.arrange(p1, p2, ncol=2)
+
+# ------
+# this quasi works
+corrgram(iris, oma=c(4,4,4,8))
+par(xpd = FALSE) # all plotting is clipped to "figure" region
+legend("bottomright", fill = unique(iris$Species), legend = c( levels(iris$Species)))
+
 }
