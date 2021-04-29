@@ -1,14 +1,11 @@
 # corrgram.R
-# Time-stamp: <05 May 2017 16:04:24 c:/x/rpack/corrgram/R/corrgram.R>
+# Time-stamp: <29 Apr 2021 10:06:25 c:/one/rpack/corrgram/r/corrgram.R>
 
 # color key
 # http://stackoverflow.com/questions/9852343/how-to-add-a-color-key-to-a-pairs-plot
 
 # To do: Add a legend/ribbon.  See 'corrplot' package for a different
 # way to calculate the layout.
-
-# hexbin
-# https://procomun.wordpress.com/2011/03/18/splomr/
 
 # ----------------------------------------------------------------------------
 
@@ -55,8 +52,9 @@
 #' @param type Use 'data' or 'cor'/'corr' to explicitly specify that 'x' is
 #' data or a correlation matrix.  Rarely needed.
 #' 
-#' @param order Should variables be re-ordered?  Use TRUE/"PCA" for PCA-based
-#' re-ordering.  Options from the 'seriate' package include "OLO" for optimal
+#' @param order Should variables be re-ordered?  Use TRUE or "PCA" for PCA-based
+#' re-ordering.  
+#' If the 'seriation' package is loaded, this can also be set to "OLO" for optimal
 #' leaf ordering, "GW", and "HC".
 #' 
 #' @param labels Labels to use (instead of data frame variable names) for
@@ -90,10 +88,16 @@
 #' @param cor.method Correlation method to use in panel functions.  Default is
 #' 'pearson'.  Alternatives: 'spearman', 'kendall'.
 #'
-#' @param outer.labels A list of the form 'list(bottom,left,top,right)',
-#' each component of which is a list of the form 'list(labels,cex,srt)'.
-#' This is used to add labels along the outside edges of the corrgram.
-#' Defaults: 'cex=1', 'srt=90' (bottom/top), 'srt=0' (left/right).
+#' @param outer.labels A list of the form 'list(bottom,left,top,right)'.
+#' If 'bottom=TRUE' (for example), variable labels are added along the
+#' bottom outside edge.
+#' 
+#' For more control, use 'bottom=list(labels,cex,srt,adj)', where 'labels' is a vector
+#' of variable labels, 'cex' affects the size, 'srt' affects the rotation, and 'adj'
+#' affects the adjustment of the labels.
+#' Defaults: 'labels' uses column names; cex=1';
+#' 'srt=90' (bottom/top), 'srt=0' (left/right);
+#' 'adj=1' (bottom/left), 'adj=0' (top/right).
 #' 
 #' @param ... Additional arguments passed to plotting methods.
 #' 
@@ -149,14 +153,14 @@
 #' labs=colnames(state.x77)
 #' corrgram(state.x77, oma=c(7, 7, 2, 2),
 #'          outer.labels=list(bottom=list(labels=labs,cex=1.5,srt=60),
-#'                            left=list(labels=labs,cex=1.5,srt=30)))
+#'                            left=list(labels=labs,cex=1.5,srt=30,adj=c(1,0))))
 #' mtext("Bottom", side=1, cex=2, line = -1.5, outer=TRUE, xpd=NA)
 #' mtext("Left", side=2, cex=2, line = -1.5, outer=TRUE, xpd=NA)
 #' 
 #' @import graphics
 #' @import grDevices
-#' @import seriation
 #' @import stats
+#' @importFrom utils installed.packages
 #' @export corrgram
 corrgram <- function (x, type=NULL,
             order=FALSE, labels, panel = panel.shade,
@@ -243,34 +247,31 @@ corrgram <- function (x, type=NULL,
   # should we use absolute correlations for determining ordering?
   cmat <- if(abs) abs(cmat) else cmat
 
+  # The 'seriation' package is very heavy (many dependencies), so we
+  # do not import it, but only check to see if it is installed.
+  if( (order %in% c("OLO","GW","HC")) && 
+      ("seriation" %in% rownames(installed.packages()))==FALSE )
+    stop("Please use install.packages('seriation') for this 'order' option.")
+      
   # Default order
   if(order==FALSE) ord <- 1:nrow(cmat)
   # Re-order the data to group highly correlated variables
   if(order==TRUE || order=="PC" || order=="PCA"){
-    # Order by angle size between PCAs (first two) of correlation matrix
+    # Calculate the size of the angle between the horizontal axis and the
+    # PC vectors
     x.eigen <- eigen(cmat)$vectors[,1:2]
     e1 <- x.eigen[,1]
     e2 <- x.eigen[,2]
-    alpha <- ifelse(e1>0, atan(e2/e1), atan(e2/e1)+pi)
+    alpha <- ifelse(e1>0, atan(e2/e1), atan(e2/e1)+pi) # Friendly eqn 1
     ord <- order(alpha)
     x <- if(type=="data") x[,ord] else x[ord, ord]
     cmat.return <- cmat.return[ord,ord]
-  } else if (order=="OLO") {
+  } else if (order %in% c("OLO","GW","HC")) {
+    # "OLO" is used in this book
+    # R Visualizations: Derive Meaning from Data By David Gerbing · 2020 p. 125
     distx <- dist(cmat)
-    ss <- seriate(distx, method="OLO") # from seriation package
-    ord <- get_order(ss)
-    x <- if(type=="data") x[,ord] else x[ord,ord]
-    cmat.return <- cmat.return[ord,ord]
-  } else if (order=="GW"){ # GW order
-    distx <- dist(cmat)
-    ss <- seriate(distx, method="GW")
-    ord <- get_order(ss)
-    x <- if(type=="data") x[,ord] else x[ord,ord]
-    cmat.return <- cmat.return[ord,ord]
-  } else if (order=="HC"){ # HC ... just for comparision really
-    distx <- dist(cmat)
-    ss <- seriate(distx, method="HC")
-    ord <- get_order(ss)
+    ss <- seriation::seriate(distx, method=order) # from seriation package
+    ord <- seriation::get_order(ss)
     x <- if(type=="data") x[,ord] else x[ord,ord]
     cmat.return <- cmat.return[ord,ord]
   } else if(order!=FALSE){
@@ -403,10 +404,10 @@ corrgram <- function (x, type=NULL,
 
   # ----------------------------------------------------------------------------
   
-  corrgram.outer.labels(1, nc, ord, outer.labels$bottom)
-  corrgram.outer.labels(2, nc, ord, outer.labels$left)
-  corrgram.outer.labels(3, nc, ord, outer.labels$top)
-  corrgram.outer.labels(4, nc, ord, outer.labels$right)
+  corrgram.outer.labels(1, nc, ord, labels, outer.labels$bottom)
+  corrgram.outer.labels(2, nc, ord, labels, outer.labels$left)
+  corrgram.outer.labels(3, nc, ord, labels, outer.labels$top)
+  corrgram.outer.labels(4, nc, ord, labels, outer.labels$right)
   
   ## # Add overall labels
   ## mtext(xlab, side = 1, line = -1.5, outer=TRUE, xpd=NA)
@@ -415,27 +416,38 @@ corrgram <- function (x, type=NULL,
   invisible(cmat.return)
 }
 
-corrgram.outer.labels <- function(side,nc,ord,ll){
+corrgram.outer.labels <- function(side,nc,ord,labels, ll){
   # side = 1,2,3,4
   # nc
   # ord = re-ordering of columns/rows
-  # ll=list(labels,cex,las,srt)
+  # ll=list(labels,cex,las,srt, adj)
   # inspired by Leo Leopold, with modifications to rotate text from
   # http://menugget.blogspot.com/2014/08/rotated-axis-labels-in-r-plots.html
   
   if(is.null(ll)) return()
+  if(isTRUE(ll)) ll <- list() # allow TRUE
   
   # In case text.panel=NULL, we need to set par(usr)
   par(usr = c(0, 1, 0, 1))
-  
+
+  # If no labels are specified, use the default column names
+  if(is.null(ll$labels)) ll$labels = labels
+    
   if(length(ll$labels) != nc)
     stop("The length of labels of side ", side, " does not match the number of columns of the corrgram.")
-  
-  # default cex, srt
+
+  # re-order if needed
   ll$labels <- ll$labels[ord]
+  
+  # default cex
   if(is.null(ll$cex)) ll$cex=1
+  # default srt
   if((side==1 | side==3) & is.null(ll$srt)) ll$srt=90 # vert
   if((side==2 | side==4) & is.null(ll$srt)) ll$srt=0 # horiz
+  # default adj
+  if((side==1 | side==2) & is.null(ll$adj)) ll$adj=1
+  if((side==3 | side==4) & is.null(ll$adj)) ll$adj=0
+  
 
   for(i in 1:nc){
     # row/column grid position down/right 
@@ -444,22 +456,22 @@ corrgram.outer.labels <- function(side,nc,ord,ll){
       # without 'clip', only the first label is added
       clip(0, -2, 0, 1)
       text(x=0.5, y= 0 - 0.05*(1-0), labels=ll$labels[i],
-           cex=ll$cex, srt=ll$srt, adj=1, xpd=NA)
+           cex=ll$cex, srt=ll$srt, adj=ll$adj, xpd=NA)
     } else if (side==2){ # left
       par(mfg=c(i, 1))
       clip(0, -2, 0, 1)
       text(x=0 - 0.05*(1-0), y=0.5, labels=ll$labels[i],
-           cex=ll$cex, srt=ll$srt, adj=1, xpd=NA)
+           cex=ll$cex, srt=ll$srt, adj=ll$adj, xpd=NA)
     } else if (side==3) { # top
       par(mfg=c(1, i))
       clip(0, -2, 0, 1)
       text(x=0.5, y= 1 + 0.05*(1-0), labels=ll$labels[i],
-           cex=ll$cex, srt=ll$srt, adj=0, xpd=NA)
+           cex=ll$cex, srt=ll$srt, adj=ll$adj, xpd=NA)
     } else if (side==4) { # right
       par(mfg=c(i, nc))
       clip(0, -2, 0, 1)
       text(x=1 + .05*(1-0), y=0.5, labels=ll$labels[i],
-           cex=ll$cex, srt=ll$srt, adj=0, xpd=NA)
+           cex=ll$cex, srt=ll$srt, adj=ll$adj, xpd=NA)
     }
     
   }

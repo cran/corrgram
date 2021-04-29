@@ -1,7 +1,5 @@
 # test_misc.R
-# Time-stamp: <05 May 2017 16:28:41 c:/x/rpack/corrgram/tests/testthat/test_misc.R>
-
-context("test_misc.R")
+# Time-stamp: <06 Nov 2019 18:57:16 c:/Users/wrightkevi/OneDrive - AgCompany/rpack/corrgram/tests/testthat/test_misc.R>
 
 require(corrgram)
 
@@ -152,7 +150,7 @@ if(FALSE){ # No need to test automatically
   require('grid')
   require('gridBase')
   unclipped.txt <- function(x=0.1, y=0.5, txt, cex, font, srt){
-    vps <- baseViewports()
+    vps <- gridBase::baseViewports()
     vps$figure$clip <- NA # Hack. Do NOT clip text that falls outside the ploting region
     pushViewport(vps$inner) # Figure region
     #grid.rect(gp=gpar(lwd=3, col="red"))
